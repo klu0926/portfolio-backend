@@ -3,26 +3,42 @@ const path = require('path')
 const { s3Controller } = require('../aws')
 const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
+const bytes = require('bytes')
 
-// get All
+// get All Page
 router.get('/', async (req, res) => {
-  const filePath = path.resolve('./public', 'display.html')
+  const filePath = path.resolve('./public', 'bucket.html')
   res.sendFile(filePath)
 })
-router.get('/objects', async (req, res) => {
+// get folder
+router.get('/objects/', async (req, res, next) => {
   try {
-    const response = await s3Controller.getAllObjects()
-    res.send(response.Contents)
+    // Prefix = folder (eg: 'folderA/folderB/')
+    const prefix = req.query.prefix || ''
+    const response = await s3Controller.getAllObjects(prefix)
+
+    const contents = response.Contents.map(item => {
+      return {
+        type: item.Size === 0 ? 'folder' : 'file',
+        key: item.Key,
+        size: item.Size,
+        url: s3Controller.getObjectUrl(item.Key),
+        bytes: bytes(item.Size)
+      }
+    })
+    console.log('contents:', contents)
+    res.send(contents)
   } catch (err) {
     next(err)
   }
 })
 
-// upload (POST/PUT)
+// upload page
 router.get('/upload', (req, res) => {
   const filePath = path.resolve('./public', 'upload.html')
   res.sendFile(filePath)
 })
+// upload 
 router.post('/upload', upload.single('Image'), tinyfy, async (req, res, next) => {
   try {
     const file = req.file
@@ -43,6 +59,7 @@ router.post('/upload', upload.single('Image'), tinyfy, async (req, res, next) =>
 })
 
 // Delete
+
 
 
 

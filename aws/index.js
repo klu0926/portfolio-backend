@@ -24,7 +24,7 @@ const s3 = new S3Client({
   }
 })
 
-// Put
+// PUT
 async function putObjectFnc(Key, buffer) {
   try {
     const response = await s3.send(new PutObjectCommand({
@@ -38,19 +38,21 @@ async function putObjectFnc(Key, buffer) {
   }
 }
 
-// Update
-
 // Read Object
 function getObjectUrlFnc(Key) {
   return PUBLIC_URL + '/' + Key
 }
 
-// Read Objects
-async function getAllObjectsFnc() {
+// List Objects
+async function getAllObjectsFnc(Prefix) {
   try {
     const response = await s3.send(new ListObjectsCommand({
-      Bucket: BUCKET
+      Bucket: BUCKET,
+      Prefix
     }))
+    if (!response.Contents) {
+      response.Contents = []
+    }
     return response
   } catch (err) {
     throw err

@@ -15,8 +15,12 @@
     <div class="container mt-5">
       <div class="row d-flex justify-content-center">
         <div class="col-12 col-lg-9">
-          <h1 class="text-center">Display</h1>
-          <table id="table" class="table table-striped">
+          <h1 class="text-center">Public Bucket</h1>
+          <p>
+            <a id="prefix-root" href="#">root</a> --
+            <span id="prefix-current"></span>
+          </p>
+          <table id="table" class="table">
             <thead>
               <tr>
                 <th scope="col">Key</th>
@@ -25,16 +29,12 @@
                 <th scope="col">Delete</th>
               </tr>
             </thead>
-            <tbody id="table-body">
-              <tr>
-                <td id="loading" colspan="4" class="text-center">Loading...</td>
-              </tr>
-            </tbody>
+            <tbody id="table-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <script src="/javascripts/display.js"></script>
+    <script type="module" src="/javascripts/bucket.js"></script>
   </body>
 </html>

@@ -1,2 +1,3 @@
-console.log('portfolio/bots/' === 'portfolio/')
-console.log('portfolio/bots/' === 'portfolio/')
+const string = 'folderA/folderB/'
+
+console.log(string.split('/'))

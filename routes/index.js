@@ -5,28 +5,27 @@ const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
 const bytes = require('bytes')
 
-// get All Page
+// get 
 router.get('/', async (req, res) => {
   const filePath = path.resolve('./public', 'bucket.html')
   res.sendFile(filePath)
 })
-// get folder
-router.get('/objects/', async (req, res, next) => {
+router.get('/objects', async (req, res, next) => {
   try {
     // Prefix = folder (eg: 'folderA/folderB/')
     const prefix = req.query.prefix || ''
-    const response = await s3Controller.getAllObjects(prefix)
+    const delimiter = req.query.delimiter || ''
 
+    const response = await s3Controller.getAllObjects(prefix, delimiter)
     const contents = response.Contents.map(item => {
       return {
         type: item.Size === 0 ? 'folder' : 'file',
         key: item.Key,
         size: item.Size,
         url: s3Controller.getObjectUrl(item.Key),
-        bytes: bytes(item.Size)
+        bytes: bytes(item.Size, { decimalPlaces: 0, unitSeparator: ' ' })
       }
     })
-    console.log('contents:', contents)
     res.send(contents)
   } catch (err) {
     next(err)
@@ -39,7 +38,7 @@ router.get('/upload', (req, res) => {
   res.sendFile(filePath)
 })
 // upload 
-router.post('/upload', upload.single('Image'), tinyfy, async (req, res, next) => {
+router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) => {
   try {
     const file = req.file
     let { Key } = req.body
@@ -59,14 +58,18 @@ router.post('/upload', upload.single('Image'), tinyfy, async (req, res, next) =>
 })
 
 // Delete
-
-
-
-
-router.get('/:key', (req, res) => {
-  const { key } = req.params
-  const url = s3Controller.getObjectUrl(key)
-  res.send(url)
+router.delete('/objects', async (req, res, next) => {
+  try {
+    const { Key } = req.body
+    if (!Key) throw new Error('No Key')
+    const response = await s3Controller.deleteObject(Key)
+    res.status(200).json({
+      ok: true,
+      message: 'Object deleted',
+      response: response
+    })
+  } catch (err) {
+    next(err)
+  }
 })
-
 module.exports = router

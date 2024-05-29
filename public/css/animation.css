@@ -1,0 +1,26 @@
+.loading-icon {
+  --icon-size: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  margin: auto;
+}
+.loading-icon::after {
+  display: block;
+  content: '';
+  background-size: cover;
+  background-image: url('/images/icon_loading.png');
+  width: var(--icon-size);
+  height: var(--icon-size);
+  transform-origin: center;
+  animation: spin 4s linear infinite;
+  filter: invert(100%);
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

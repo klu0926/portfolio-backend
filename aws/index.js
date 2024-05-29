@@ -38,18 +38,20 @@ async function putObjectFnc(Key, buffer) {
   }
 }
 
-// Read Object
+// Object public URL
 function getObjectUrlFnc(Key) {
   return PUBLIC_URL + '/' + Key
 }
 
 // List Objects
-async function getAllObjectsFnc(Prefix) {
+async function getAllObjectsFnc(Prefix, Delimiter) {
   try {
     const response = await s3.send(new ListObjectsCommand({
       Bucket: BUCKET,
-      Prefix
+      Prefix, // Key's prefix 
+      Delimiter, // delimiter set to '/' limit objects that is under that same folder
     }))
+
     if (!response.Contents) {
       response.Contents = []
     }
@@ -57,14 +59,29 @@ async function getAllObjectsFnc(Prefix) {
   } catch (err) {
     throw err
   }
-
 }
 
 // Delete
+async function deleteObjectFnc(Key) {
+  try {
+    const response = await s3.send(new DeleteObjectCommand({
+      Bucket: BUCKET,
+      Key,
+    }))
+    return response
+  } catch (err) {
+    throw err
+  }
+}
+
+
+
+// Controller
 const s3Controller = {
   getObjectUrl: getObjectUrlFnc,
   getAllObjects: getAllObjectsFnc,
   putObject: putObjectFnc,
+  deleteObject: deleteObjectFnc
 }
 
 

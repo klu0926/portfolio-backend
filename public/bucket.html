@@ -9,32 +9,71 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <title>Display</title>
+    <link rel="stylesheet" href="/css/animation.css" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <title>Public Bucket</title>
   </head>
   <body>
     <div class="container mt-5">
       <div class="row d-flex justify-content-center">
         <div class="col-12 col-lg-9">
-          <h1 class="text-center">Public Bucket</h1>
-          <p>
-            <a id="prefix-root" href="#">root</a> --
-            <span id="prefix-current"></span>
-          </p>
-          <table id="table" class="table">
-            <thead>
-              <tr>
-                <th scope="col">Key</th>
-                <th scope="col">Type</th>
-                <th scope="col">Size</th>
-                <th scope="col">Delete</th>
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
+          <h1 class="text-center">Bucket</h1>
+          <!--upload form-->
+          <div id="form-container" class="mb-5">
+            <h4 class="">Upload</h4>
+            <form
+              id="upload-form"
+              method="post"
+              action="/objects"
+              enctype="multipart/form-data"
+            >
+              <div class="row g-3 align-items-center">
+                <div class="col">
+                  <input
+                    name="Key"
+                    id="key-input"
+                    type="text"
+                    class="col-auto form-control"
+                    placeholder="Key"
+                    required
+                  />
+                </div>
+                <div class="col">
+                  <input
+                    name="Image"
+                    id="file-input"
+                    type="file"
+                    class="col-auto form-control"
+                    required
+                  />
+                </div>
+                <div class="col">
+                  <button id="upload" class="btn btn-primary w-100">
+                    Upload
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!--table-->
+          <div id="talbe-container" class="mb-5">
+            <h4 class="">Objects</h4>
+            <table id="table" class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Key</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Size</th>
+                  <th scope="col">Delete</th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-
     <script type="module" src="/javascripts/bucket.js"></script>
   </body>
 </html>

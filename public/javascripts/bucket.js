@@ -1,4 +1,6 @@
 import { insertBefore, insertAfter } from './helper/insert.js'
+// global 
+let data = null
 
 // Data
 const URL = 'http://localhost:3000/objects'
@@ -34,8 +36,6 @@ async function uploadObject() {
       method: 'POST',
       body: formData
     })
-
-
     renderTable()
     resetUploadForm()
   } catch (err) {
@@ -43,6 +43,7 @@ async function uploadObject() {
   }
 }
 
+// view
 function resetUploadForm() {
   const keyInput = document.querySelector('#key-input')
   const fileInput = document.querySelector('#file-input')
@@ -144,29 +145,19 @@ function createFolderMapLinks(folderMap, renderTableFunction) {
   // Other folders
   for (const [key, prefix] of folderMap.entries()) {
     appendFolderLink(key, prefix)
-
   }
   return div
 }
 
-function cleanUpElements() {
-  const elementIds = []
-  elementIds.forEach(id => {
-    const element = document.querySelector(`#${id}`)
-    if (element) element.remove()
-  })
-}
 
 async function renderTable(prefix = '') {
   try {
     const table = document.querySelector('table')
     if (!table) throw new Error('Missing table')
-
     const tableBody = table.querySelector('tbody')
 
     // clean up
     tableBody.innerHTML = ''
-    cleanUpElements()
 
     // add loading
     const loadingRow = document.createElement('tr')
@@ -178,14 +169,15 @@ async function renderTable(prefix = '') {
     tableBody.appendChild(loadingRow)
 
     // fetch data
-    // prefix = s3 folder directory (eg: 'folderA/folderB')
-    const contents = await fetchData(getObjectsURL(prefix, '/'))
+    const regex = new RegExp(`^${prefix}[^/]+/?$`);
+    const contents = data.filter(item => regex.test(item.key))
     const files = filterContentsType(contents, 'file')
+    console.log('files:', files)
 
     // remove loading
     loadingRow.remove()
 
-    // if files is empty
+    // if contents is empty
     if (files.length === 0) {
       const row = document.createElement('tr')
       const td = document.createElement('td')
@@ -243,12 +235,9 @@ async function renderTable(prefix = '') {
 async function renderFolderMap() {
   const table = document.querySelector('table')
   if (!table) throw new Error('Missing table')
-  // fetch data
-  // prefix = s3 folder directory (eg: 'folderA/folderB')
-  const contents = await fetchData(getObjectsURL(''))
 
   // filter content type
-  const folders = filterContentsType(contents, 'folder')
+  const folders = filterContentsType(data, 'folder')
 
   //folders map
   const foldersMap = createFolderMap(folders)
@@ -257,18 +246,28 @@ async function renderFolderMap() {
 }
 
 
-
-
-
 // START
 // (fetch objects API, Table, Prefix)
 // Prefix (eg: folderA/folderB/), all with '/' in the end
-renderTable()
-renderFolderMap()
+
+async function init() {
+  data = await fetchData(URL)
+  console.log('data:', data)
+  renderTable()
+  renderFolderMap()
+}
+
 const uploadBtn = document.querySelector('#upload')
 uploadBtn.onclick = (e) => {
   e.preventDefault()
   uploadObject()
 }
+
+init()
+
+
+
+
+
 
 

@@ -20,7 +20,7 @@
           <h1 class="text-center">Bucket</h1>
           <!--upload form-->
           <div id="form-container" class="mb-5">
-            <h4 class="">Upload</h4>
+            <p class="h3">Upload</p>
             <form
               id="upload-form"
               method="post"
@@ -30,12 +30,20 @@
               <div class="row g-3 align-items-center">
                 <div class="col">
                   <input
+                    name="name"
+                    id="name-input"
+                    type="text"
+                    class="col-auto form-control"
+                    placeholder="file name"
+                    required
+                  />
+                  <input
                     name="Key"
                     id="key-input"
                     type="text"
                     class="col-auto form-control"
                     placeholder="Key"
-                    required
+                    hidden
                   />
                 </div>
                 <div class="col">
@@ -58,8 +66,12 @@
 
           <!--table-->
           <div id="talbe-container" class="mb-5">
-            <h4 class="">Objects</h4>
-            <table id="table" class="table">
+            <div>
+              <span class="h3">Folder</span>
+              <span class="text-secondary">excluding folder</span>
+            </div>
+            <div id="folder-map-container"></div>
+            <table id="bucket-table" class="table">
               <thead>
                 <tr>
                   <th scope="col">Key</th>
@@ -68,12 +80,17 @@
                   <th scope="col">Delete</th>
                 </tr>
               </thead>
-              <tbody id="table-body"></tbody>
+              <tbody id="table-body">
+                <!--loading--->
+                <tr>
+                  <td class="text-center" colspan="4">Loading...</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
-    <script type="module" src="/javascripts/bucket.js"></script>
+    <script type="module" src="/javascripts/bucketMVC.js"></script>
   </body>
 </html>

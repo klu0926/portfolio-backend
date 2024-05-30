@@ -4,6 +4,7 @@ const { s3Controller } = require('../aws')
 const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
 const bytes = require('bytes')
+const { closeSync } = require('fs')
 
 // get 
 router.get('/', async (req, res) => {
@@ -17,15 +18,18 @@ router.get('/objects', async (req, res, next) => {
     const delimiter = req.query.delimiter || ''
 
     const response = await s3Controller.getAllObjects(prefix, delimiter)
+
+
     const contents = response.Contents.map(item => {
       return {
         type: item.Size === 0 ? 'folder' : 'file',
         key: item.Key,
         size: item.Size,
         url: s3Controller.getObjectUrl(item.Key),
-        bytes: bytes(item.Size, { decimalPlaces: 0, unitSeparator: ' ' })
+        bytes: bytes(item.Size, { decimalPlaces: 0, unitSeparator: ' ' }),
       }
     })
+    console.log(contents)
     res.send(contents)
   } catch (err) {
     next(err)
@@ -46,7 +50,7 @@ router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) =
     if (!Key) throw new Error('Missing Object Key')
 
     const newKey = Key + '.' + file.originalname.split('.')[1]
-    const response = await s3Controller.putObject(newKey, file.buffer)
+    const response = await s3Controller.putObject(newKey, file)
     res.status(201).json({
       ok: true,
       message: 'Object created',

@@ -25,12 +25,13 @@ const s3 = new S3Client({
 })
 
 // PUT
-async function putObjectFnc(Key, buffer) {
+async function putObjectFnc(Key, file) {
   try {
     const response = await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
       Key,
-      Body: buffer,
+      Body: file.buffer,
+      ContentType: file.mimetype
     }))
     return response
   } catch (err) {

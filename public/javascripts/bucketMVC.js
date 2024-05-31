@@ -40,11 +40,11 @@ class Model {
     contents.sort((a, b) => {
       // a is less than b
       if (a.type === 'file' && b.type === 'folder') {
-        return -1
+        return 1
       }
       // b is less than a
       else if (a.type === 'folder' && b.type === 'file') {
-        return 1
+        return -1
       }
       else {
         return 0

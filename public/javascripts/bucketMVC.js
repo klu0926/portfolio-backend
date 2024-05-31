@@ -1,26 +1,40 @@
+import swal from "./swal.js"
+
 // Model
 class Model {
   constructor() {
-    this.url = 'http://localhost:3000/objects'
+    this.url = 'http://localhost:3000'
+    this.objectUrl = this.url + '/objects'
+    this.folderUrl = this.url + '/folder'
     this.data = [] // all data
     this.prefix = '' // folder path
     this.map = null
   }
   async fetchData() {
-    const response = await fetch(this.url)
-    const data = await response.json()
-    this.data = this.sortContentType(data)
-    console.log('data:', this.data)
+    try {
+      const response = await fetch(this.objectUrl)
+      const data = await response.json()
+      this.data = this.sortContentType(data)
+    } catch (err) {
+      alert('Can not fetch data')
+    }
   }
-  async uploadObject(form) {
+  async postFile(form) {
     const formData = new FormData(form)
-    await fetch(this.url, {
+    await fetch(this.objectUrl, {
+      method: 'POST',
+      body: formData
+    })
+  }
+  async postFolder(form) {
+    const formData = new FormData(form)
+    await fetch(this.objectUrl, {
       method: 'POST',
       body: formData
     })
   }
   getObjectURL(prefix, delimiter) {
-    return `${this.url}?prefix=${prefix || ''}&delimiter=${delimiter || ''}`
+    return `${this.objectUrl}?prefix=${prefix || ''}&delimiter=${delimiter || ''}`
   }
   sortContentType(contents) {
     contents.sort((a, b) => {
@@ -44,13 +58,37 @@ class Model {
   createFolderMap() {
     const folders = this.getDataType('folder')
     const map = new Map()
+    const currentPaths = this.prefix.split('/') || ''
+    const currentDepth = currentPaths.length - 1 || 0
+    const currentFolder = currentPaths[currentPaths.length - 2]
+    let isCompleted = false
 
-    folders.forEach(folder => {
-      const paths = folder.key.split('/')
+    // filter folders
+    const filterFolders = folders.filter(folder => {
+      const folderKey = folder.key
+      const folderPaths = folderKey.split('/')
+      const currentPaths = this.prefix.split('/')
+      if (folderPaths > currentPaths) return false
+      // if paths is different
+      for (let i = 0; i < folderPaths.length; i++) {
+        if (folderPaths[i] !== currentPaths[i]) return false
+      }
+      return true
+    })
+
+    filterFolders.forEach(folder => {
+      if (isCompleted) return
+      const folderKey = folder.key
+      const paths = folderKey.split('/')
+      paths.pop()
       let prefix = ''
-      for (let i = 0; i < paths.length - 1; i++) {
-        prefix = `${prefix}${paths[i]}/`
+
+      for (let i = 0; i < paths.length; i++) {
+        if (i + 1 > currentDepth) return
+        if (i + 1 === currentDepth && paths[i] !== currentFolder) continue
+        prefix += (paths[i] + '/')
         map.set(paths[i], prefix)
+
       }
     })
     return map
@@ -74,7 +112,6 @@ class View {
     loadingTd.classList = ['text-center']
     loadingRow.appendChild(loadingTd)
     this.tableBody.appendChild(loadingRow)
-
   }
   renderTableBody(data) {
     this.tableBody.innerHTML = ''
@@ -296,11 +333,9 @@ class Controller {
       upload.appendChild(loading)
 
       // POST 
-      await this.model.uploadObject(form)
+      await this.model.postFile(form)
       this.view.resetUploadForm()
       this.fetchAndRender()
-
-
 
     } catch (err) {
       alert(err)

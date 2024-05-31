@@ -39,6 +39,18 @@ async function putObjectFnc(Key, file) {
   }
 }
 
+async function putFolderFnc(Key) {
+  try {
+    const response = await s3.send(new PutObjectCommand({
+      Bucket: BUCKET,
+      Key,
+    }))
+    return response
+  } catch (err) {
+    throw err
+  }
+}
+
 // Object public URL
 function getObjectUrlFnc(Key) {
   return PUBLIC_URL + '/' + Key
@@ -76,12 +88,12 @@ async function deleteObjectFnc(Key) {
 }
 
 
-
 // Controller
 const s3Controller = {
   getObjectUrl: getObjectUrlFnc,
   getAllObjects: getAllObjectsFnc,
   putObject: putObjectFnc,
+  putFolder: putFolderFnc,
   deleteObject: deleteObjectFnc
 }
 

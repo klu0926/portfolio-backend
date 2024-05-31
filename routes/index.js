@@ -19,7 +19,6 @@ router.get('/objects', async (req, res, next) => {
 
     const response = await s3Controller.getAllObjects(prefix, delimiter)
 
-
     const contents = response.Contents.map(item => {
       return {
         type: item.Size === 0 ? 'folder' : 'file',
@@ -29,19 +28,13 @@ router.get('/objects', async (req, res, next) => {
         bytes: bytes(item.Size, { decimalPlaces: 0, unitSeparator: ' ' }),
       }
     })
-    console.log(contents)
     res.send(contents)
   } catch (err) {
     next(err)
   }
 })
 
-// upload page
-router.get('/upload', (req, res) => {
-  const filePath = path.resolve('./public', 'upload.html')
-  res.sendFile(filePath)
-})
-// upload 
+// post file
 router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) => {
   try {
     const file = req.file
@@ -54,6 +47,26 @@ router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) =
     res.status(201).json({
       ok: true,
       message: 'Object created',
+      response: response
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// post folder
+router.post('/folders', async (req, res, next) => {
+  try {
+    let { Key } = req.body
+    if (!Key) throw new Error('Missing Object Key')
+
+    console.log('post folder key:', Key)
+
+    const response = await s3Controller.putFolder(Key)
+
+    res.status(201).json({
+      ok: true,
+      message: 'Folder created',
       response: response
     })
   } catch (err) {

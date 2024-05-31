@@ -4,10 +4,12 @@ class Model {
     this.url = 'http://localhost:3000/objects'
     this.data = [] // all data
     this.prefix = '' // folder path
+    this.map = null
   }
   async fetchData() {
     const response = await fetch(this.url)
-    this.data = await response.json()
+    const data = await response.json()
+    this.data = this.sortContentType(data)
     console.log('data:', this.data)
   }
   async uploadObject(form) {
@@ -20,16 +22,24 @@ class Model {
   getObjectURL(prefix, delimiter) {
     return `${this.url}?prefix=${prefix || ''}&delimiter=${delimiter || ''}`
   }
+  sortContentType(contents) {
+    contents.sort((a, b) => {
+      // a is less than b
+      if (a.type === 'file' && b.type === 'folder') {
+        return -1
+      }
+      // b is less than a
+      else if (a.type === 'folder' && b.type === 'file') {
+        return 1
+      }
+      else {
+        return 0
+      }
+    })
+    return contents
+  }
   getDataType(type) {
     return this.data.filter(item => item.type === type)
-  }
-  getKeyPrefix(key) {
-    const paths = key.split('/')
-    let prefix = ''
-    for (let i = 0; i < paths.length - 1; i++) {
-      prefix = `${prefix}${paths[i]}/`
-    }
-    return prefix
   }
   createFolderMap() {
     const folders = this.getDataType('folder')
@@ -45,9 +55,6 @@ class Model {
     })
     return map
   }
-  setCurrentPrefix(prefix) {
-    this.prefix = prefix
-  }
 }
 
 // View
@@ -58,11 +65,8 @@ class View {
     this.table = document.querySelector('#bucket-table')
     this.tableBody = document.querySelector('#table-body')
   }
-  renderTableBody() {
-    // clean up
+  tableBodyLoading() {
     this.tableBody.innerHTML = ''
-
-    // add loading
     const loadingRow = document.createElement('tr')
     const loadingTd = document.createElement('td')
     loadingTd.innerText = 'Loading...'
@@ -71,16 +75,20 @@ class View {
     loadingRow.appendChild(loadingTd)
     this.tableBody.appendChild(loadingRow)
 
-    // filter object with prefix 
-    const allFiles = this.model.getDataType('file')
-    const regex = new RegExp(`^${this.model.prefix}[^/]+/?$`);
-    const files = allFiles.filter(item => regex.test(item.key))
+  }
+  renderTableBody(data) {
+    this.tableBody.innerHTML = ''
 
-    // remove loading
-    loadingRow.remove()
+    // filter object with prefix 
+    const prefix = this.model.prefix
+    // match key that start with prefix, and doesn't end with a '/' (folder)
+    // also prevent the key === the prefix (current folder)
+    const regex = new RegExp(`^${prefix}(?!$)[^/]*\/?$`)
+
+    const contents = data.filter(object => regex.test(object.key))
 
     // if contents is empty
-    if (files.length === 0) {
+    if (contents.length === 0) {
       const row = document.createElement('tr')
       const td = document.createElement('td')
       td.innerText = 'no file'
@@ -92,36 +100,66 @@ class View {
     }
 
     // Generate table row
-    for (const file of files) {
+    for (const object of contents) {
+      // table row
       const row = document.createElement('tr')
+      if (object.type === 'folder') {
+        row.classList.add('table-secondary')
+      }
+
       // Key
       const keyCol = document.createElement('td')
+      const keySpan = document.createElement('span')
       const keyLink = document.createElement('a')
-      keyCol.appendChild(keyLink)
-      keyLink.innerText = file.key
-      keyLink.target = '_blank'
-      keyLink.href = file.url
+      // key icon
+      const keyIcon = document.createElement('img')
+      keyIcon.classList.add('icon')
+      keyIcon.src = `/images/icons/${object.type}.svg`
+
+      keySpan.appendChild(keyIcon)
+      keySpan.innerHTML += ' '
+      keySpan.appendChild(keyLink)
+      keyCol.appendChild(keySpan)
+      keyLink.innerText = object.key
+
+      if (object.type === 'file') {
+        keyLink.target = '_blank'
+        keyLink.href = object.url
+      }
+      if (object.type === 'folder') {
+        keyLink.href = 'javascript:void(0)'
+        // add controller handler
+        keyLink.onclick = () => {
+          view.controller.changeCurrentPrefix(object.key)
+        }
+      }
+
       row.appendChild(keyCol)
+
 
       // type
       const typeCol = document.createElement('td')
-      typeCol.innerText = file.type
+      typeCol.innerText = object.type
       row.appendChild(typeCol)
 
       // Size
       const sizeCol = document.createElement('td')
-      sizeCol.innerText = file.bytes || ''
+      if (object.type === 'file') {
+        sizeCol.innerText = object.bytes || ''
+      }
       row.appendChild(sizeCol)
 
       // delete
       const deleteCol = document.createElement('td')
-      const deleteButton = document.createElement('button')
-      deleteButton.innerText = 'Delete'
-      deleteButton.classList.add('btn', 'btn-danger')
-      deleteButton.onclick = (e) => {
-        this.controller.deleteObjectButtonFnc(e.target, file.key)
+      if (object.type === 'file') {
+        const deleteButton = document.createElement('button')
+        deleteButton.innerText = 'Delete'
+        deleteButton.classList.add('btn', 'btn-danger')
+        deleteButton.onclick = (e) => {
+          this.controller.deleteObjectButtonFnc(e.target, object.key)
+        }
+        deleteCol.appendChild(deleteButton)
       }
-      deleteCol.appendChild(deleteButton)
       row.appendChild(deleteCol)
 
       // append to table-body
@@ -141,7 +179,7 @@ class View {
       link.onclick = function (e) {
         e.preventDefault()
         // controller
-        view.controller.switchFolderButtonFunc(prefix)
+        view.controller.changeCurrentPrefix(prefix)
       }
       // color current prefix link
       if (prefix === view.model.prefix) {
@@ -178,13 +216,19 @@ class View {
 
   }
   resetUploadForm() {
+    const nameInput = document.querySelector('#name-input')
     const keyInput = document.querySelector('#key-input')
     const fileInput = document.querySelector('#file-input')
     const button = document.querySelector('#upload')
+    nameInput.value = ''
     keyInput.value = ''
     fileInput.value = null
     button.innerHTML = ''
     button.innerText = 'Upload'
+  }
+  updateCurrentPrefix(folderName) {
+    const currentFolder = document.querySelector('#current-prefix')
+    currentFolder.innerText = folderName || 'Root'
   }
 }
 
@@ -204,8 +248,10 @@ class Controller {
     }
   }
   async fetchAndRender() {
+    // show loading
+    this.view.tableBodyLoading()
     await this.model.fetchData()
-    this.view.renderTableBody()
+    this.view.renderTableBody(this.model.data)
     this.view.renderFolderMap()
   }
   async deleteObjectButtonFnc(button, Key) {
@@ -254,15 +300,18 @@ class Controller {
       this.view.resetUploadForm()
       this.fetchAndRender()
 
+
+
     } catch (err) {
       alert(err)
     }
   }
-  switchFolderButtonFunc(prefix) {
-    controller.model.setCurrentPrefix(prefix)
-    controller.view.renderTableBody()
-    controller.view.renderFolderMap()
+  changeCurrentPrefix(prefix) {
+    controller.model.prefix = prefix
+    this.fetchAndRender()
+    this.view.updateCurrentPrefix(this.model.prefix)
   }
+
 }
 
 const model = new Model()

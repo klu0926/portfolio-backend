@@ -9,3 +9,8 @@
   max-height: 100%;
   margin: auto;
 }
+
+.icon {
+  width: 22px;
+  aspect-ratio: 1/1;
+}

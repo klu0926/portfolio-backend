@@ -1,11 +1,8 @@
-import swal from "./swal.js"
-
 // Model
 class Model {
   constructor() {
     this.url = 'http://localhost:3000'
     this.objectUrl = this.url + '/objects'
-    this.folderUrl = this.url + '/folder'
     this.data = [] // all data
     this.prefix = '' // folder path
     this.map = null
@@ -21,16 +18,18 @@ class Model {
   }
   async postFile(form) {
     const formData = new FormData(form)
-    await fetch(this.objectUrl, {
+    return fetch(this.objectUrl, {
       method: 'POST',
       body: formData
     })
   }
-  async postFolder(form) {
-    const formData = new FormData(form)
-    await fetch(this.objectUrl, {
-      method: 'POST',
-      body: formData
+  async deleteFile(Key) {
+    return fetch(this.objectUrl, {
+      method: 'delete',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ Key: Key })
     })
   }
   getObjectURL(prefix, delimiter) {
@@ -301,13 +300,7 @@ class Controller {
       button.appendChild(loading)
 
       // DELETE
-      await fetch(this.model.url, {
-        method: 'delete',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ Key })
-      })
+      const response = await this.model.deleteFile(Key)
       this.fetchAndRender()
     }
   }
@@ -333,7 +326,9 @@ class Controller {
       upload.appendChild(loading)
 
       // POST 
-      await this.model.postFile(form)
+      const response = await this.model.postFile(form)
+      const json = await response.json()
+      console.log('POST JSON:', json)
       this.view.resetUploadForm()
       this.fetchAndRender()
 

@@ -4,13 +4,20 @@ const { s3Controller } = require('../aws')
 const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
 const bytes = require('bytes')
-const { closeSync } = require('fs')
+const getPublicUrl = require('../helper/getPublicUrl')
 
-// get 
+// pages
 router.get('/', async (req, res) => {
   const filePath = path.resolve('./public', 'bucket.html')
   res.sendFile(filePath)
 })
+router.get('/write', async (req, res) => {
+  const filePath = path.resolve('./public', 'write.html')
+  res.sendFile(filePath)
+})
+
+
+// get object
 router.get('/objects', async (req, res, next) => {
   try {
     // Prefix = folder (eg: 'folderA/folderB/')
@@ -44,10 +51,13 @@ router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) =
 
     const newKey = Key + '.' + file.originalname.split('.')[1]
     const response = await s3Controller.putObject(newKey, file)
+
+    // return public url 
     res.status(201).json({
       ok: true,
       message: 'Object created',
-      response: response
+      response: response,
+      url: getPublicUrl(newKey)
     })
   } catch (err) {
     next(err)

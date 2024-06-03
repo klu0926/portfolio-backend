@@ -1,0 +1,7 @@
+.image-select {
+  cursor: pointer;
+}
+
+.image-select:hover {
+  outline: 2px solid red;
+}

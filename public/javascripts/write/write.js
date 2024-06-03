@@ -23,14 +23,8 @@ class View {
   constructor() {
 
   }
-  renderImageSelections(data) {
-    const files = data.filter(item => item.size > 0)
-    const images = files.filter(file => file.url)
-    const urls = images.map(image => image.url)
-
-    sweetAlert.showImageSelection(urls)
-
-    console.log('images:', images)
+  renderImageSelections(urls, callback) {
+    sweetAlert.showImageSelection(urls, callback)
   }
 }
 
@@ -72,14 +66,25 @@ class Controller {
       quillControl.enable()
     }
   }
-  testHandler() {
-    this.view.renderImageSelections(this.model.data)
+  showImageSelector() {
+    const files = this.model.data.filter(item => item.size > 0)
+    const images = files.filter(file => file.url)
+    const urls = images.map(image => image.url)
 
+    function insertImage(url) {
+      quillControl.insertImage(url)
+    }
+    this.view.renderImageSelections(urls, insertImage)
+  }
+  testHandler() {
+    console.log('test')
   }
 }
 const model = new Model()
 const view = new View()
 const controller = new Controller(model, view)
+
+export { controller }
 
 
 

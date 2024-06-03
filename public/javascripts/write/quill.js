@@ -1,4 +1,5 @@
 import sweetAlert from '/javascripts/helper/sweetAlert.js'
+import { controller as writeControl } from './write.js'
 
 function quillInsertImage(url) {
   try {
@@ -71,9 +72,9 @@ const toolbarOptions = {
     ['clean'],
   ],
   handlers: {
-    'customButton': () => {
-      console.log('ok')
-    } // Define your custom button handler here
+    'image': () => {
+      writeControl.showImageSelector()
+    }
   }
 }
 
@@ -91,8 +92,6 @@ const editor = document.querySelector('#editor')
 const quill = new Quill('#editor', options)
 
 
-
-
 // controller
 class QuillControl {
   constructor(editor, quill) {
@@ -105,6 +104,10 @@ class QuillControl {
   }
   setContents(delta, user = 'user') {
     this.quill.setContents(delta, user)
+  }
+  insertImage(url) {
+    const index = quill.getSelection(true).index
+    quill.insertEmbed(index, 'image', url, 'user')
   }
   enable() {
     this.quill.enable()
@@ -120,8 +123,6 @@ class QuillControl {
     console.log(this.isEditorEnable)
     return this.isEditorEnable
   }
-
-
 }
 
 const quillControl = new QuillControl(editor, quill)

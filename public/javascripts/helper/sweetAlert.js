@@ -124,17 +124,17 @@ const sweetAlert = {
       }
     }, timer)
   },
-  showImageSelection(urls) {
+  showImageSelection(urls, insertImageHandler) {
     if (!Array.isArray(urls) || urls.length === 0) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Please provide a non-empty array of URLs!',
-      });
+      sweetAlert.error('Error', 'Missing images urls')
       return;
     }
     const className = 'image-select'
-    const imagesHtml = urls.map(url => `<img src="${url}" class='${className}'  style="width: 100px; height: 100px; margin: 5px;">`).join('');
+    const imagesHtml = urls.map(url => {
+      const title = url.split('/').pop()
+      return (`<img src="${url}" class="${className}" title="${title}">`)
+    }
+    ).join('');
 
     Swal.fire({
       title: 'Images',
@@ -144,6 +144,16 @@ const sweetAlert = {
       customClass: {
         popup: 'image-grid-popup',
       },
+      didRender: () => {
+        // add callback function to each button
+        const images = document.querySelectorAll(`.${className}`)
+        console.log('images:', images)
+        images.forEach(image => image.onclick = () => {
+          insertImageHandler(image.src)
+          // close
+          sweetAlert.close()
+        })
+      }
     });
   }
 

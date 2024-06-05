@@ -49,7 +49,8 @@ router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) =
     if (!file) throw new Error('Missing File')
     if (!Key) throw new Error('Missing Object Key')
 
-    const newKey = Key + '.' + file.originalname.split('.')[1]
+
+    const newKey = Key + '.' + file.originalname.split('.').pop()
     const response = await s3Controller.putObject(newKey, file)
 
     // return public url 

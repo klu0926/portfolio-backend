@@ -1,67 +1,6 @@
-import sweetAlert from '/javascripts/helper/sweetAlert.js'
-import { controller as writeControl } from './write.js'
-
-function quillInsertImage(url) {
-  try {
-    if (!url) throw new Error('沒有輸入url')
-    if (!quill) throw new Error('quill沒有內容')
-    const range = quill.getSelection()
-    quill.insertEmbed(range.index, 'image', url);
-  } catch (err) {
-    throw err
-  }
-}
-
-function uploadImageHandler() {
-  console.log('upload image')
-
-  const input = document.createElement('input')
-  input.style.display = 'none'
-  input.setAttribute('type', 'file');
-  input.setAttribute('accept', 'image/*');
-
-  input.onchange = async (e) => {
-    try {
-      const file = e.target.files[0]
-      if (!file) return
-
-      const formData = new FormData()
-      formData.append('picture', file)
-
-      // show loading
-      sweetAlert.loading('上傳照片中...')
-
-      // upload to server
-      const url = '/upload'
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      if (!response) throw new Error('無法取得Response')
-      const json = await response.json()
-      if (!json.ok) throw new Error(json.err)
-      const imgurUrl = json.data // imgurUrl
-
-      // finished: 
-      // remove input
-      input.remove()
-      // insert image to quill
-      quillInsertImage(imgurUrl)
-      // close loading
-      sweetAlert.close()
-    } catch (err) {
-      await sweetAlert.error('上傳照片失敗', err.message || err)
-    }
-  }
-  // append input to body and click
-  document.body.appendChild(input)
-  input.click()
-}
-
-
 const toolbarOptions = {
   container: [
-    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+    [{ 'size': ['small', false, 'large', 'huge'] }],
     ['bold', 'italic', 'underline'],
     ['link', 'image', 'video'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
@@ -71,11 +10,13 @@ const toolbarOptions = {
     [{ 'align': [] }],
     ['clean'],
   ],
+  // override toolbar button handlers
   handlers: {
-    'image': () => {
-      writeControl.showImageSelector()
-    }
-  }
+    // use controller's setHandler method to set handler
+    // 'image': () => {
+    //   writeControl.quillImageHandler()
+    // }
+  },
 }
 
 
@@ -84,9 +25,8 @@ const options = {
   modules: {
     toolbar: toolbarOptions,
   },
-  theme: 'snow'
+  theme: 'snow',
 }
-
 
 const editor = document.querySelector('#editor')
 const quill = new Quill('#editor', options)
@@ -97,7 +37,7 @@ class QuillControl {
   constructor(editor, quill) {
     this.editor = editor
     this.quill = quill
-    this.isEditorEnable = true
+    this.toolbar = document.querySelector('.ql-toolbar')
   }
   getContents() {
     return this.quill.getContents()
@@ -112,18 +52,32 @@ class QuillControl {
   enable() {
     this.quill.enable()
     this.editor.style.backgroundColor = '#ffffff'
-    this.isEditorEnable = true
+    this.toolbar.style.backgroundColor = '#ffffff'
+
   }
   disable() {
     this.quill.disable()
     this.editor.style.backgroundColor = '#f0f0f0'
-    this.isEditorEnable = false
+    this.toolbar.style.backgroundColor = '#f0f0f0'
   }
-  isEnable() {
-    console.log(this.isEditorEnable)
-    return this.isEditorEnable
+  isEnable = () => {
+    return this.quill.isEnabled()
+  }
+  // key is the handler key, the toolbar's button name
+  setToolbarHandler(key, handlerFunction) {
+    const isEnable = this.isEnable
+
+    // Define a guard function to wrap around the original handlerFunction.
+    function guardFunction() {
+      if (isEnable()) {
+        handlerFunction.apply(this, arguments);
+      }
+    }
+
+    var toolbar = quill.getModule('toolbar');
+    toolbar.addHandler(key, guardFunction);
   }
 }
 
 const quillControl = new QuillControl(editor, quill)
-export { quillControl }
+export default quillControl 

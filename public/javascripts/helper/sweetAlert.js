@@ -1,4 +1,7 @@
+import sweetImagesSelect from './htmlTemplates/sweetImagesSelect.js'
+
 const sweetAlert = {
+  didRenderHandlers: {}, // for write controller to set up later
   success: (title, text, timer) => {
     return new Promise((resolve, reject) => {
       Swal.fire({
@@ -124,39 +127,30 @@ const sweetAlert = {
       }
     }, timer)
   },
-  showImageSelection(urls, insertImageHandler) {
+  // didRenderHandler will run in didRender()
+  showImageSelection(urls) {
     if (!Array.isArray(urls) || urls.length === 0) {
       sweetAlert.error('Error', 'Missing images urls')
       return;
     }
-    const className = 'image-select'
-    const imagesHtml = urls.map(url => {
-      const title = url.split('/').pop()
-      return (`<img src="${url}" class="${className}" title="${title}">`)
-    }
-    ).join('');
+    // main template
+    let sweetImagesSelectDiv = document.createElement('div')
+    sweetImagesSelectDiv.classList.add('mt-2')
+    sweetImagesSelectDiv.innerHTML = sweetImagesSelect
 
     Swal.fire({
       title: 'Images',
-      html: imagesHtml,
+      html: sweetImagesSelectDiv,
       showCloseButton: true,
       showConfirmButton: false,
       customClass: {
         popup: 'image-grid-popup',
       },
       didRender: () => {
-        // add callback function to each button
-        const images = document.querySelectorAll(`.${className}`)
-        console.log('images:', images)
-        images.forEach(image => image.onclick = () => {
-          insertImageHandler(image.src)
-          // close
-          sweetAlert.close()
-        })
+        this.didRenderHandlers.SweetImageSelectionDidRender()
       }
     });
   }
-
 }
 
 export default sweetAlert

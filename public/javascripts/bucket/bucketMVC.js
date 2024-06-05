@@ -251,6 +251,14 @@ class View {
     folderMapContainer.appendChild(foldersMapDiv)
 
   }
+  uploadButtonShowLoading() {
+    // loading icon on upload button
+    const uploadBtn = document.querySelector('#upload')
+    uploadBtn.innerHTML = ''
+    const loading = document.createElement('div')
+    loading.classList.add('loading-icon')
+    uploadBtn.appendChild(loading)
+  }
   resetUploadForm() {
     const nameInput = document.querySelector('#name-input')
     const keyInput = document.querySelector('#key-input')
@@ -291,17 +299,22 @@ class Controller {
     this.view.renderFolderMap()
   }
   async deleteObjectButtonFnc(button, Key) {
-    const isConfirm = confirm(`Do you want to delete ${Key}?`)
-    if (isConfirm) {
-      // show loading icon
-      button.innerHTML = ''
-      const loading = document.createElement('div')
-      loading.classList.add('loading-icon')
-      button.appendChild(loading)
+    try {
+      const isConfirm = confirm(`Do you want to delete ${Key}?`)
+      if (isConfirm) {
+        // show loading icon
+        button.innerHTML = ''
+        const loading = document.createElement('div')
+        loading.classList.add('loading-icon')
+        button.appendChild(loading)
 
-      // DELETE
-      const response = await this.model.deleteFile(Key)
-      this.fetchAndRender()
+        // DELETE
+        const response = await this.model.deleteFile(Key)
+        this.fetchAndRender()
+      }
+    } catch (err) {
+      alert(err)
+      location.reload()
     }
   }
   async uploadButtonFuc() {
@@ -310,7 +323,6 @@ class Controller {
       const nameInput = document.querySelector('#name-input')
       const keyInput = document.querySelector('#key-input') // hidden
       const fileInput = document.querySelector('#file-input')
-      const upload = document.querySelector('#upload')
 
       if (!form) throw new Error('Missing upload form')
       if (!nameInput.value?.trim()) throw new Error('Missing Key')
@@ -319,21 +331,21 @@ class Controller {
       // add prefix to key
       keyInput.value = this.model.prefix + nameInput.value
 
-      // loading icon
-      upload.innerHTML = ''
-      const loading = document.createElement('div')
-      loading.classList.add('loading-icon')
-      upload.appendChild(loading)
+      // upload button loading
+      this.view.uploadButtonShowLoading()
 
       // POST 
       const response = await this.model.postFile(form)
       const json = await response.json()
+
+      if (!json.ok) throw new Error(json.error)
       console.log('POST JSON:', json)
       this.view.resetUploadForm()
       this.fetchAndRender()
 
     } catch (err) {
       alert(err)
+      location.reload()
     }
   }
   changeCurrentPrefix(prefix) {
@@ -341,7 +353,6 @@ class Controller {
     this.fetchAndRender()
     this.view.updateCurrentPrefix(this.model.prefix)
   }
-
 }
 
 const model = new Model()

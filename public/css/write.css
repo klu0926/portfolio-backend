@@ -1,10 +1,76 @@
+/* sweet alert image select */
+#images-container-div {
+  width: 100%;
+  height: 400px;
+  overflow-y: scroll;
+}
+
+.images-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 10px 0px 10px 0px;
+  width: 100%;
+}
+
 .image-select {
-  cursor: pointer;
-  width: 100px;
-  height: 100px;
-  margin: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 140px;
+  border: 2px solid white;
+  padding: 1px;
 }
 
 .image-select:hover {
-  outline: 2px solid red;
+  border: 2px solid red;
+}
+
+.image-select img {
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  border: 2px solid white;
+}
+
+/* editor related */
+#editor-container {
+  position: relative;
+}
+
+#editor-container.loading {
+  background-color: rgb(222, 222, 222);
+  cursor: wait;
+}
+
+/* everything with in */
+#editor-container.loading > * {
+  pointer-events: none;
+}
+
+#editor-container.loading::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  content: '';
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  transform: translate(-50%, -50%);
+  background-image: url('/images/icon_loading.png');
+  animation: editor-loading-spin 2s linear infinite;
+}
+/* editor  */
+.ql-editor {
+  min-height: 400px;
+  overflow: auto;
+  font-size: '16px';
+}
+
+@keyframes editor-loading-spin {
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }

@@ -1,7 +1,7 @@
 const multer = require('multer')
 const upload = multer({
   limits: {
-    fileSize: 1000000 //1MB
+    fileSize: 1000000 * 5 //5MB
   },
   fileFilter(req, file, cb) {
     // check is image

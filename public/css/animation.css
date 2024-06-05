@@ -15,11 +15,11 @@
   width: var(--icon-size);
   height: var(--icon-size);
   transform-origin: center;
-  animation: spin 4s linear infinite;
+  animation: loading-icon-spin 2s linear infinite;
   filter: invert(100%);
 }
 
-@keyframes spin {
+@keyframes loading-icon-spin {
   100% {
     transform: rotate(360deg);
   }

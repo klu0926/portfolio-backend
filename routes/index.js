@@ -5,17 +5,22 @@ const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
 const bytes = require('bytes')
 const getPublicUrl = require('../helper/getPublicUrl')
+const postController = require('../controller/postController')
 
 // pages
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   const filePath = path.resolve('./public', 'bucket.html')
   res.sendFile(filePath)
 })
-router.get('/write', async (req, res) => {
+router.get('/write', (req, res) => {
   const filePath = path.resolve('./public', 'write.html')
   res.sendFile(filePath)
 })
-
+// test page
+router.get('/test', async (req, res) => {
+  const filePath = path.resolve('./public', 'test.html')
+  res.sendFile(filePath)
+})
 
 // get object
 router.get('/objects', async (req, res, next) => {
@@ -41,7 +46,7 @@ router.get('/objects', async (req, res, next) => {
   }
 })
 
-// post file
+// post object
 router.post('/objects', upload.single('Image'), tinyfy, async (req, res, next) => {
   try {
     const file = req.file
@@ -85,7 +90,7 @@ router.post('/folders', async (req, res, next) => {
   }
 })
 
-// Delete
+// Delete object
 router.delete('/objects', async (req, res, next) => {
   try {
     const { Key } = req.body
@@ -100,4 +105,15 @@ router.delete('/objects', async (req, res, next) => {
     next(err)
   }
 })
+
+
+// SQL POST ------------------------------------
+router.get('/posts/:postId', postController.getPost)
+router.post('/posts', postController.postPost)
+router.put('/posts', postController.putPost)
+router.delete('/posts', postController.deletePost)
+
+
+
+
 module.exports = router

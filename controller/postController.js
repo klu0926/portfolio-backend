@@ -2,25 +2,28 @@ const responseJSON = require('../helper/responseJSON')
 const { Post } = require('../models/')
 const ResponseError = require('../helper/ResponseError')
 
-
-
 const postController = {
+  // Get one or all post
   getPost: async (req, res) => {
     try {
+      let data = null
       // check id
       const { postId } = req.params
-      if (!postId) {
-        throw new ResponseError('Missing post id', 400)
+
+      // get one post or all post
+      if (postId) {
+        data = await Post.findOne({ where: { id: postId }, raw: true })
+      } else {
+        data = await Post.findAll({ raw: true })
       }
-      // try to get post
-      const post = await Post.findOne({ where: { id: postId } })
-      if (!post) {
-        throw new ResponseError(`Post not found with id: ${postId}`, 404)
+
+      // If find one post fail
+      if (postId && !data) {
+        throw new ResponseError(`Fail to get post id: ${postId}`, 400)
       }
 
       // response
-      const postDat = post.toJSON()
-      res.status(200).json(responseJSON(true, 'GET', postDat, 'Successfully get post'))
+      res.status(200).json(responseJSON(true, 'GET', data, 'Successfully get post'))
     } catch (err) {
       console.error(err)
       res.status(err.status || 500).json(responseJSON(false, 'GET', null, err.message, err))
@@ -92,7 +95,6 @@ const postController = {
       res.status(err.statusCode || 500).json(responseJSON(false, 'DELETE', err.message, err))
     }
   }
-
 }
 
 module.exports = postController

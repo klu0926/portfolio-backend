@@ -88,8 +88,8 @@ async function deleteObjectFnc(Key) {
 }
 
 
-// Controller
-const s3Controller = {
+// s3Client controller
+const s3Client = {
   getObjectUrl: getObjectUrlFnc,
   getAllObjects: getAllObjectsFnc,
   putObject: putObjectFnc,
@@ -97,7 +97,6 @@ const s3Controller = {
   deleteObject: deleteObjectFnc
 }
 
-
-module.exports = { s3Controller }
+module.exports = s3Client
 
 

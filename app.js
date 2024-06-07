@@ -16,10 +16,6 @@ app.use(express.json())
 
 // Routes
 app.use(routes)
-// catch all 404 pages
-app.use((req, res, next) => {
-  next(new Error('page does not exist!'))
-})
 // error handler
 app.use(errorHandler)
 

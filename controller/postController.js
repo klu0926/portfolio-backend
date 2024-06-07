@@ -33,12 +33,14 @@ const postController = {
     try {
       // check body
       const { title, data } = req.body
+
       if (!title || !data) {
         throw new ResponseError(`Missing body: title: ${Boolean(title)}, data: ${Boolean(data)}`, 400)
       }
       // create post
       const post = await Post.create({
-        title, data
+        title,
+        data: JSON.stringify(data)
       })
 
       // response
@@ -63,7 +65,7 @@ const postController = {
 
       // update post
       post.title = title
-      post.data = data
+      post.data = JSON.stringify(data)
       await post.save()
 
       // response

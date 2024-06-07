@@ -1,3 +1,7 @@
+.btn-save {
+  min-width: 100px;
+}
+
 /* sweet alert image select */
 #images-container-div {
   width: 100%;
@@ -67,6 +71,40 @@
   min-height: 400px;
   overflow: auto;
   font-size: '16px';
+}
+
+/* editor text size (base on google) */
+.ql-editor .ql-size-small {
+  font-size: 12px;
+}
+
+.ql-editor p {
+  font-size: 18px;
+}
+
+.ql-editor .ql-size-large {
+  font-size: 25px;
+}
+
+.ql-editor .ql-size-huge {
+  font-size: 40px;
+}
+
+/* editor toolbar size picker */
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='small']::before {
+  font-size: 12px;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='normal']::before {
+  font-size: 18px;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
+  font-size: 25px;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
+  font-size: 40px;
 }
 
 @keyframes editor-loading-spin {

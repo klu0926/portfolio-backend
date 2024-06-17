@@ -2,12 +2,14 @@
 // input: name, Key (hidden), Image
 // need to use js to combine name with current prefix (folder) to generate Key
 // server takes in {Key} from body, and Image from file input
-const uploadFormHtml = `<!--upload form-->
+const uploadFormHtml = `
+      <!--upload form-->
           <div id="upload-form-container" class="container mb-5">
           <select id='prefix-select' class="form-select" aria-label="prefix-select">
           </select>
           <div id='images-container-div'></div>
-          <div class='mt-4'>
+          <div class='mt-4 bg-primary p-3 rounded shadow'>
+          <p class='text-white'>Upload Image</p>
             <form
               id="upload-form"
               method="post"
@@ -43,7 +45,7 @@ const uploadFormHtml = `<!--upload form-->
                   />
                 </div>
                 <div class="col mt-3">
-                  <button id="upload" class="btn btn-primary w-100">
+                  <button id="upload" class="btn btn-light w-100">
                     Upload
                   </button>
                 </div>

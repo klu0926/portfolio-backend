@@ -1,4 +1,4 @@
-import sweetImagesSelect from './htmlTemplates/sweetImagesSelect.js'
+import sweetImagesSelect from '../../htmlTemplates/sweetImagesSelect.js'
 
 const sweetAlert = {
   didRenderHandlers: {}, // for write controller to set up later
@@ -103,22 +103,28 @@ const sweetAlert = {
     })
   },
   loading: (loadTitle) => {
-    return new Promise((resolve, reject) => {
-      Swal.fire({
-        title: loadTitle || "努力中...",
-        html: `<div class='swal-loading-bar'></div>`,
-        showConfirmButton: false,
-        allowOutsideClick: false,
-        customClass: {
-          title: 'swal-loading-title',
-          popup: 'swal-loading-popup',
-          text: 'swal-loading-text'
-        }
-      }).then(result => {
-        return resolve(result)
-      })
+    Swal.fire({
+      title: loadTitle || "努力中...",
+      html: `<div class='swal-loading-bar'></div>`,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      customClass: {
+        title: 'swal-loading-title',
+        popup: 'swal-loading-popup',
+        text: 'swal-loading-text'
+      }
     })
+    // return a close now function
+    return sweetAlert.closeNow
   },
+  // sync 
+  closeNow: () => {
+    const alert = document.querySelector('.swal2-container')
+    if (alert) {
+      swal.close()
+    }
+  },
+  // timeout
   close: (timer = 0) => {
     setTimeout(() => {
       const alert = document.querySelector('.swal2-container')

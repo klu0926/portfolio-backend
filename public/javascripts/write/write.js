@@ -21,6 +21,7 @@ class Model {
     try {
       const response = await fetch(this.objectUrl)
       this.objects = await response.json()
+      console.log(this.objects)
       console.log('data fetched')
 
     } catch (err) {
@@ -90,6 +91,24 @@ class Model {
       alert(err.message)
     }
   }
+  async deleteObject(Key) {
+    try {
+      if (!Key) throw new Error('Missing object key')
+      // fetch delete
+      return fetch(this.objectUrl, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          Key
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        }
+      })
+    } catch (err) {
+      console.error(err)
+      alert(err.message)
+    }
+  }
   getDataType(type) {
     if (type === 'file') {
       return this.objects.filter(object => object.size > 0)
@@ -147,18 +166,24 @@ class View {
     quillControl.setContents(delta)
   }
   // render the images in sweet alert's window (sweetImagesSelect)
-  renderImageSelection = (urls, prefix = '') => {
-    const filteredUrls = urls.filter(url => {
+  renderImageSelection = (files, prefix = '') => {
+
+    // get file urls (filter out folders)
+    const filterFiles = files.filter(file => {
+      const url = file.url
       const fileName = url.split('/').pop()
       if (url.includes(prefix + fileName)) return true
       return false
     })
 
     // images
-    const imagesHtml = filteredUrls.map(link => {
+    const imagesHtml = filterFiles.map(file => {
+      const key = file.key
+      const link = file.url
       const title = link.split('/').pop()
       return (`
-      <div class='image-select'>
+      <div class='image-select' data-key='${key}'>
+            <button type='button' class='delete btn btn-danger'>x</button>
             <img src="${link}" title="${title}">
       </div>
       `)
@@ -327,15 +352,44 @@ class Controller {
   // for SweetImageSelectionDidRender
   renderImageSelection = () => {
     const files = this.model.getDataType('file')
-    const urls = files.map(file => file.url)
 
-    this.view.renderImageSelection(urls, this.model.prefix)
+    // create image select html
+    this.view.renderImageSelection(files, this.model.prefix)
 
     // image onclick handler
     const images = document.querySelectorAll('.image-select img')
     images.forEach(image => image.onclick = () => {
       quillControl.insertImage(image.src)
       sweetAlert.close()
+    })
+
+    // delete button handler
+    const deletes = document.querySelectorAll('.delete')
+    deletes.forEach(d => {
+      d.onclick = async () => {
+        try {
+          // get key from parent .image-select
+          const imageSelect = d.parentElement
+          const key = imageSelect.dataset['key']
+
+          // confirm
+          const isConfirm = confirm(`Delete object key: ${key}?`)
+          if (isConfirm) {
+            sweetAlert.loading('deleting...')
+            await this.model.deleteObject(key)
+
+            // reload data
+            await this.model.fetchObjectsData()
+
+            // open image select
+            this.quillImageHandler()
+            //this.renderImageSelection()
+          }
+        } catch (err) {
+          alert(err)
+          this.sweetAlert.closeNow()
+        }
+      }
     })
   }
   // SweetAlert did render 
@@ -405,8 +459,7 @@ class Controller {
 
 const model = new Model()
 const view = new View(quillControl)
-new Controller(model, view, quillControl, sweetAlert)
-
+const controller = new Controller(model, view, quillControl, sweetAlert)
 
 
 

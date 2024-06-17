@@ -8,7 +8,7 @@ const uploadFormHtml = `
           <select id='prefix-select' class="form-select" aria-label="prefix-select">
           </select>
           <div id='images-container-div'></div>
-          <div class='mt-4 bg-primary p-3 rounded shadow'>
+          <div class='mt-4 bg-secondary p-3 rounded shadow'>
           <p class='text-white'>Upload Image</p>
             <form
               id="upload-form"
@@ -45,7 +45,7 @@ const uploadFormHtml = `
                   />
                 </div>
                 <div class="col mt-3">
-                  <button id="upload" class="btn btn-light w-100">
+                  <button id="upload" class="btn btn-primary w-100">
                     Upload
                   </button>
                 </div>

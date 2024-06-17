@@ -190,7 +190,7 @@ class View {
       if (object.type === 'file') {
         const deleteButton = document.createElement('button')
         deleteButton.innerText = 'Delete'
-        deleteButton.classList.add('btn', 'btn-danger')
+        deleteButton.classList.add('btn', 'btn-danger', 'delete')
         deleteButton.onclick = (e) => {
           this.controller.deleteObjectButtonFnc(e.target, object.key)
         }
@@ -303,13 +303,15 @@ class Controller {
       const isConfirm = confirm(`Do you want to delete ${Key}?`)
       if (isConfirm) {
         // show loading icon
-        button.innerHTML = ''
-        const loading = document.createElement('div')
-        loading.classList.add('loading-icon')
-        button.appendChild(loading)
+        const text = button.innerText
+        button.innerText = ''
+        button.classList.add('loading-icon')
 
         // DELETE
         const response = await this.model.deleteFile(Key)
+
+        // finished
+        button.innerText = text
         this.fetchAndRender()
       }
     } catch (err) {

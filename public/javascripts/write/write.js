@@ -124,6 +124,19 @@ class View {
     this.postsSelect = document.querySelector('#posts-select')
     this.editorContainer = document.querySelector('#editor-container')
     this.notifyTimeoutId = null
+    this.init()
+  }
+  init() {
+    // init some visual setup
+
+    // save button to  toolbar
+    const toolbar = document.querySelector('.ql-toolbar')
+    const saveBtn = document.createElement('button')
+    saveBtn.id = 'save'
+    saveBtn.classList.add('btn', 'btn-primary')
+    saveBtn.innerHTML = `<i class="fa-regular fa-floppy-disk"></i>`
+    toolbar.appendChild(saveBtn)
+
   }
   setEditorLoading(isLoading) {
     if (isLoading) {
@@ -225,7 +238,7 @@ class View {
     }
     return resetButton
   }
-  notify(text, time = 2000) {
+  notify(text, time = 1500) {
     const oldNotify = document.querySelector('#notify')
     if (oldNotify) {
       oldNotify.remove()
@@ -514,13 +527,3 @@ const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
 
-
-
-
-// test
-const button = document.createElement('button')
-document.querySelector('body').appendChild(button)
-button.innerText = 'Show notify'
-button.onclick = () => {
-  controller.view.notify('Saved')
-}

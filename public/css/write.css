@@ -1,7 +1,16 @@
-.btn-save {
-  min-width: 50px;
-  min-height: 50px;
-  font-size: 1.5rem;
+#save {
+  min-width: 70px;
+  min-height: 35px;
+  font-size: 1.2rem;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 5px;
+  float: right;
+  transition: filter 0.4s;
+}
+
+#save:hover {
+  filter: brightness(1.2);
 }
 
 #notify {
@@ -113,6 +122,12 @@
   min-height: 400px;
   overflow: auto;
   font-size: '16px';
+}
+
+.ql-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 /* editor text size (base on google) */

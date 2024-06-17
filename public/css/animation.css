@@ -1,33 +1,39 @@
 .loading-icon {
   --icon-size: 22px;
+  width: 100%; /* Ensure the icon takes up full width of its container */
+  height: 100%; /* Ensure the icon takes up full height of its container */
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative; /* Ensure positioning context */
 }
+
 .loading-icon::after {
-  display: block;
   content: '';
-  background-size: cover;
   background-image: url('/images/icon_loading.png');
+  background-size: cover;
   width: var(--icon-size);
   height: var(--icon-size);
-  transform-origin: center;
-  animation: loading-icon-spin 2s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   filter: invert(100%);
+  animation: loading-icon-spin 2s linear infinite;
 }
 
 @keyframes loading-icon-spin {
-  100% {
-    transform: rotate(360deg);
+  to {
+    transform: translate(-50%, -50%) rotate(360deg); /* Rotate 360 degrees */
   }
 }
 
 @keyframes notify-pop {
   0% {
-    transform: translateX(-50%) scale(0.9);
+    transform: translateX(-50%) scale(0.8);
   }
   50% {
-    transform: translateX(-50%) scale(1.1);
+    transform: translateX(-50%) scale(1.2);
   }
   100% {
     transform: translateX(-50%) scale(1);

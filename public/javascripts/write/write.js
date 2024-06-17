@@ -21,8 +21,6 @@ class Model {
     try {
       const response = await fetch(this.objectUrl)
       this.objects = await response.json()
-      console.log(this.objects)
-      console.log('data fetched')
 
     } catch (err) {
       alert('Can not fetch data')
@@ -46,7 +44,6 @@ class Model {
       this.posts.forEach(post => {
         post.data = JSON.parse(post.data)
       })
-      console.log('posts fetched')
     } catch (err) {
       alert(err.message)
     }
@@ -126,6 +123,7 @@ class View {
     this.titleInput = document.querySelector('#title-input')
     this.postsSelect = document.querySelector('#posts-select')
     this.editorContainer = document.querySelector('#editor-container')
+    this.notifyTimeoutId = null
   }
   setEditorLoading(isLoading) {
     if (isLoading) {
@@ -167,6 +165,9 @@ class View {
   }
   // render the images in sweet alert's window (sweetImagesSelect)
   renderImageSelection = (files, prefix = '') => {
+    // images container 
+    const imagesContainerDiv = document.querySelector('#images-container-div')
+    imagesContainerDiv.innerHTML = ''
 
     // get file urls (filter out folders)
     const filterFiles = files.filter(file => {
@@ -176,27 +177,35 @@ class View {
       return false
     })
 
-    // images
-    const imagesHtml = filterFiles.map(file => {
-      const key = file.key
-      const link = file.url
-      const title = link.split('/').pop()
-      return (`
+    // has image
+    if (filterFiles.length > 0) {
+      // images
+      const imagesHtml = filterFiles.map(file => {
+        const key = file.key
+        const link = file.url
+        const title = link.split('/').pop()
+        return (`
       <div class='image-select' data-key='${key}'>
             <button type='button' class='delete btn btn-danger'>x</button>
             <img src="${link}" title="${title}">
       </div>
       `)
-    }
-    ).join('');
-    const imagesContainer = document.createElement('div')
-    imagesContainer.innerHTML = imagesHtml
-    imagesContainer.classList.add('images-container')
+      }
+      ).join('');
+      const imagesContainer = document.createElement('div')
+      imagesContainer.innerHTML = imagesHtml
+      imagesContainer.classList.add('images-container')
 
-    // append images to container div
-    const imagesContainerDiv = document.querySelector('#images-container-div')
-    imagesContainerDiv.innerHTML = ''
-    imagesContainerDiv.appendChild(imagesContainer)
+      // append images to container div
+      imagesContainerDiv.appendChild(imagesContainer)
+      return
+    }
+
+    // no images
+    const noImageText = document.createElement('p')
+    noImageText.innerText = 'No Images'
+    noImageText.classList.add('text-center', 'mt-3')
+    imagesContainerDiv.appendChild(noImageText)
   }
   buttonLoading(button, loadingClass = 'loading-icon') {
     // take in a button element
@@ -205,16 +214,42 @@ class View {
       return
     }
     // button loading
-    const buttonText = button.innerText
-    button.innerText = ''
+    const buttonInnerHTML = button.innerHTML
+    button.innerHTML = ''
     button.classList.add(loadingClass)
 
     // cleanup function
     function resetButton() {
       button.classList.remove(loadingClass)
-      button.innerText = buttonText
+      button.innerHTML = buttonInnerHTML
     }
     return resetButton
+  }
+  notify(text, time = 2000) {
+    const oldNotify = document.querySelector('#notify')
+    if (oldNotify) {
+      oldNotify.remove()
+    }
+
+    const notify = document.createElement('div')
+    notify.id = 'notify'
+    document.body.appendChild(notify)
+
+    // if is currently showing
+    if (this.notifyTimeoutId) {
+      clearTimeout(this.notifyTimeoutId)
+      this.notifyTimeoutId = null
+    }
+
+    // set notify 
+    notify.innerText = text
+    notify.classList.remove('show')
+    notify.classList.add('show')
+
+    this.notifyTimeoutId = setTimeout(() => {
+      notify.classList.remove('show')
+      this.notifyTimeoutId = null
+    }, time)
   }
 }
 
@@ -250,11 +285,25 @@ class Controller {
     // buttons handlers
     this.saveBtn.onclick = (e) => this.createAndSaveMixHandler(e)
 
+    // -- shortcut handlers
+    // ctrl + s
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey && e.key === 's') {
+        e.preventDefault()
+        console.log('saved')
+        // save
+        this.saveHandler()
+      }
+    })
+
     // quill handler setup
     this.quillControl.setToolbarHandler('image', this.quillImageHandler)
 
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
+
+
+
   }
   async createHandler(e) {
     try {
@@ -283,14 +332,15 @@ class Controller {
       alert(err.message || err)
     }
   }
-  async saveHandler(e) {
+  async saveHandler() {
     try {
       // Get current post
       const currentPost = this.model.currentPost
       if (!currentPost) return
 
       // loading button
-      const resetButton = this.view.buttonLoading(e.target)
+      const saveButton = document.querySelector('#save')
+      const resetButton = this.view.buttonLoading(saveButton)
 
       // get title, data
       const id = currentPost.id
@@ -306,6 +356,9 @@ class Controller {
 
       // button reset
       resetButton()
+
+      // notify saved
+      this.view.notify('Saved')
     } catch (err) {
       alert(err.message || err)
     }
@@ -463,3 +516,11 @@ const controller = new Controller(model, view, quillControl, sweetAlert)
 
 
 
+
+// test
+const button = document.createElement('button')
+document.querySelector('body').appendChild(button)
+button.innerText = 'Show notify'
+button.onclick = () => {
+  controller.view.notify('Saved')
+}

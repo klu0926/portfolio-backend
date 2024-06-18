@@ -12,8 +12,17 @@ module.exports = {
       title: {
         type: Sequelize.STRING
       },
+      cover: {
+        type: Sequelize.STRING
+      },
       data: {
         type: Sequelize.TEXT
+      },
+      description: {
+        type: Sequelize.STRING
+      },
+      tags: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

@@ -21,7 +21,6 @@ const postController = {
       if (postId && !data) {
         throw new ResponseError(`Fail to get post id: ${postId}`, 400)
       }
-
       // response
       res.status(200).json(responseJSON(true, 'GET', data, 'Successfully get post'))
     } catch (err) {
@@ -32,14 +31,23 @@ const postController = {
   postPost: async (req, res) => {
     try {
       // check body
-      const { title, data } = req.body
+      const { title, data, cover, description, tags } = req.body
+      const fields = { title, data, cover, description } // ignore tags for now
+      const errorItems = []
 
-      if (!title || !data) {
-        throw new ResponseError(`Missing body: title: ${Boolean(title)}, data: ${Boolean(data)}`, 400)
+      Object.keys(fields).forEach(key => {
+        if (!fields[key]) errorItems.push(key)
+      })
+      if (errorItems.length !== 0) {
+        throw new ResponseError(`Missing fields: ${errorItems.join(',')}`, 400)
       }
+
       // create post
       const post = await Post.create({
         title,
+        cover,
+        description,
+        tags: JSON.stringify(tags),
         data: JSON.stringify(data)
       })
 
@@ -53,19 +61,26 @@ const postController = {
   putPost: async (req, res) => {
     try {
       // check body
-      const { id, title, data } = req.body
-      if (!id || !title || !data) {
-        throw new ResponseError(`Missing body: id: ${Boolean(title)}, title: ${Boolean(title)}, data: ${Boolean(data)}`, 400)
+      const { id, data } = req.body
+
+      console.log(req.body)
+
+      if (!id) {
+        throw new ResponseError('Missing put post id', 400)
       }
+
       // find post
       const post = await Post.findOne({ where: { id } })
       if (!post) {
-        throw new ResponseError(`Can not find post with id: ${id}`, 404)
+        throw new ResponseError(`Can not find post with id: ${id}`, 400)
       }
 
       // update post
-      post.title = title
-      post.data = JSON.stringify(data)
+      if (data.title) post.title = data.title
+      if (data.cover) post.cover = data.cover
+      if (data.description) post.description = data.description
+      if (data.tags) post.tags = data.tags
+      post.data = JSON.stringify(data.data) // allow empty data
       await post.save()
 
       // response

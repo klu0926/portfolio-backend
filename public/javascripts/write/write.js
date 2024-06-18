@@ -3,7 +3,10 @@ import quillControl from './quill.js'
 
 const defaultPost = {
   title: 'New Post',
-  data: {}
+  cover: '',
+  description: '',
+  data: {},
+  tags: [],
 }
 
 class Model {
@@ -26,6 +29,7 @@ class Model {
       alert('Can not fetch data')
     }
   }
+  // post images
   async postFile(form) {
     const formData = new FormData(form)
     return fetch(this.objectUrl, {
@@ -44,84 +48,57 @@ class Model {
       this.posts.forEach(post => {
         post.data = JSON.parse(post.data)
       })
+
     } catch (err) {
       alert(err.message)
     }
   }
-  async postPost(title, quillDelta) {
-    try {
-      if (!title) throw new Error('Missing title')
-      if (!quillDelta) throw new Error('Missing quill delta')
-      return fetch(this.postUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          title,
-          data: quillDelta
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
-    } catch (err) {
-      console.error(err)
-      alert(err.message)
-    }
+  async postPost(data) {
+    return fetch(this.postUrl, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
   }
-  async putPost(id, title, quillDelta) {
-    try {
-      if (!id) throw new Error('Missing post id')
-      if (!title) throw new Error('Missing post title')
-      if (!quillDelta) throw new Error('Missing quill delta')
-      return fetch(this.postUrl, {
-        method: 'PUT',
-        body: JSON.stringify({
-          id,
-          title,
-          data: quillDelta
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
-    } catch (err) {
-      console.error(err)
-      alert(err.message)
-    }
+  async putPost(id, data) {
+    return fetch(this.postUrl, {
+      method: 'PUT',
+      body: JSON.stringify({
+        id,
+        data
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+
   }
   async deletePost(id) {
-    try {
-      if (!id) throw new Error('Missing post id')
-      return fetch(this.postUrl, {
-        method: 'Delete',
-        body: JSON.stringify({
-          id,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
-    } catch (err) {
-      console.error(err)
-      alert(err.message)
-    }
+    if (!id) throw new Error('Missing post id')
+    return fetch(this.postUrl, {
+      method: 'Delete',
+      body: JSON.stringify({
+        id,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
   }
   async deleteObject(Key) {
-    try {
-      if (!Key) throw new Error('Missing object key')
-      // fetch delete
-      return fetch(this.objectUrl, {
-        method: 'DELETE',
-        body: JSON.stringify({
-          Key
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
-    } catch (err) {
-      console.error(err)
-      alert(err.message)
-    }
+    if (!Key) throw new Error('Missing object key')
+    // fetch delete
+    return fetch(this.objectUrl, {
+      method: 'DELETE',
+      body: JSON.stringify({
+        Key
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
   }
   getDataType(type) {
     if (type === 'file') {
@@ -173,9 +150,11 @@ class View {
       }
     }
   }
-  renderEditor = (title, delta) => {
-    this.titleInput.value = title
-    quillControl.setContents(delta)
+  renderInputValue = (postObject) => {
+    document.querySelector('#title-input').value = postObject.title
+    document.querySelector('#cover-input').value = postObject.cover
+    document.querySelector('#description-input').value = postObject.description
+    quillControl.setContents(postObject.data)
   }
   // render the images in sweet alert's window (sweetImagesSelect)
   renderImageSelection = (files, prefix = '') => {
@@ -266,6 +245,7 @@ class View {
     }, time)
   }
   toolbarButtonsRender(isNewPost = false) {
+    console.log('render buttons')
     // init some visual setup
     // toolbar
     const toolbar = document.querySelector('.ql-toolbar')
@@ -332,21 +312,32 @@ class Controller {
     this.postSelectHandler()
 
     // -- shortcut handlers
-    // ctrl + s
-    document.addEventListener('keydown', (e) => {
-      if (e.metaKey && e.key === 's') {
-        e.preventDefault()
-        console.log('saved')
-        // save
-        this.saveHandler()
-      }
-    })
+    this.hotkeySetup()
 
     // quill handler setup
     this.quillControl.setToolbarHandler('image', this.quillImageHandler)
 
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
+  }
+  hotkeySetup() {
+    // command + s (save)
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey && e.key === 's') {
+        console.log('save')
+        e.preventDefault()
+        this.createAndSaveMixHandler()
+      }
+    })
+  }
+  getInputData() {
+    const data = {
+      title: document.querySelector('#title-input').value,
+      cover: document.querySelector('#cover-input').value,
+      description: document.querySelector('#description-input').value,
+      data: this.quillControl.getContents()
+    }
+    return data
   }
   buttonsHandlerSetup() {
     // buttons handlers
@@ -368,15 +359,13 @@ class Controller {
     }
   }
   // create post (save)
-  async createHandler(e) {
-    try {
-      // loading button
-      const resetButton = this.view.buttonLoading(e.target)
+  async createHandler() {
+    // loading button
+    const saveButton = document.querySelector('#save')
+    const resetButton = this.view.buttonLoading(saveButton)
 
-      // get title, data
-      const title = this.titleInput.value
-      const delta = this.quillControl.getContents()
-      const response = await this.model.postPost(title, delta)
+    try {
+      const response = await this.model.postPost(this.getInputData())
       const json = await response.json()
       if (!json.ok) throw new Error(json.message)
 
@@ -389,28 +378,32 @@ class Controller {
       options.forEach(option => option.selected = false)
       options[options.length - 1].selected = true
 
-      // button reset
-      resetButton()
+      // render buttons
+      this.view.toolbarButtonsRender(false)
     } catch (err) {
       alert(err.message || err)
+    } finally {
+      // button reset
+      resetButton()
     }
   }
   // save post (save)
   async saveHandler() {
+    console.log('save handler trigger')
+    // loading button
+    const saveButton = document.querySelector('#save')
+    const resetButton = this.view.buttonLoading(saveButton)
+
     try {
       // Get current post
       const currentPost = this.model.currentPost
       if (!currentPost) return
 
-      // loading button
-      const saveButton = document.querySelector('#save')
-      const resetButton = this.view.buttonLoading(saveButton)
-
       // get title, data
       const id = currentPost.id
-      const title = this.titleInput.value
-      const delta = this.quillControl.getContents()
-      const response = await this.model.putPost(id, title, delta)
+
+      // put post
+      const response = await this.model.putPost(id, this.getInputData())
       const json = await response.json()
       if (!json.ok) throw new Error(json.message)
 
@@ -418,13 +411,14 @@ class Controller {
       await this.model.getAllPosts()
       this.view.renderPostSelect(this.model.posts, this.model.currentPost)
 
-      // button reset
-      resetButton()
-
       // notify saved
       this.view.notify('Saved')
+      this.view.toolbarButtonsRender(false)
+
     } catch (err) {
       alert(err.message || err)
+    } finally {
+      resetButton()
     }
   }
   async deletePostHandler(postId) {
@@ -467,14 +461,14 @@ class Controller {
 
     if (postId === 'new') {
       // this is a new post
-      this.view.renderEditor(defaultPost.title, defaultPost.data)
+      this.view.renderInputValue(defaultPost)
 
       // set current post
       this.model.currentPost = null
     } else {
       // load old post
       const post = this.model.posts.find(post => Number(post.id) === Number(postId))
-      this.view.renderEditor(post.title, post.data)
+      this.view.renderInputValue(post)
       // set current post
       this.model.currentPost = post
     }

@@ -5,7 +5,7 @@ const sweetAlert = {
   success: (title, text, timer) => {
     return new Promise((resolve, reject) => {
       Swal.fire({
-        title: title || "成功",
+        title: title || "Success!",
         icon: "success",
         text: text || '',
         showConfirmButton: false,
@@ -21,10 +21,10 @@ const sweetAlert = {
   notice: (title, icon, text) => {
     return new Promise((resolve, reject) => {
       Swal.fire({
-        title: title || "成功",
+        title: title || "Success!",
         icon: icon || "info",
         text: text || '',
-        confirmButtonText: '是的',
+        confirmButtonText: 'OK',
         confirmButtonColor: '#3894F1',
         customClass: {
           title: 'swal-title',
@@ -40,9 +40,9 @@ const sweetAlert = {
         title: title,
         text: text || '',
         showDenyButton: true,
-        confirmButtonText: '是的',
+        confirmButtonText: 'Yes',
         confirmButtonColor: '#3894F1',
-        denyButtonText: '不要',
+        denyButtonText: 'No',
         denyButtonColor: '#F7647D',
         customClass: {
           title: 'swal-title',
@@ -55,10 +55,10 @@ const sweetAlert = {
   error: (title, text) => {
     return new Promise((resolve, reject) => {
       Swal.fire({
-        title: title || '失敗',
+        title: title || 'Fail',
         icon: "error",
         text: text || '',
-        confirmButtonText: '好吧',
+        confirmButtonText: 'OK',
         confirmButtonColor: '#F7647D',
         customClass: {
           title: 'swal-title',
@@ -75,13 +75,13 @@ const sweetAlert = {
         input: inputType || "text",
         inputPlaceholder: placeholder,
         inputValue,
-        confirmButtonText: '修改',
+        confirmButtonText: 'OK',
         confirmButtonColor: '#3894F1',
         showDenyButton: true,
-        denyButtonText: '刪除',
+        denyButtonText: 'Deny',
         denyButtonColor: '#F7647D',
         showCancelButton: true,
-        cancelButtonText: '取消',
+        cancelButtonText: 'Cancel',
         inputAttributes: {
           "aria-label": "Type your input here"
         },
@@ -96,7 +96,7 @@ const sweetAlert = {
     Swal.fire({
       showConfirmButton: false,
       showCancelButton: true,
-      cancelButtonText: '關閉',
+      cancelButtonText: 'Close',
       imageWidth: size || '320px',
       background: `#fff`,
       imageUrl: url,
@@ -104,7 +104,7 @@ const sweetAlert = {
   },
   loading: (loadTitle) => {
     Swal.fire({
-      title: loadTitle || "努力中...",
+      title: loadTitle || "Loading...",
       html: `<div class='swal-loading-bar'></div>`,
       showConfirmButton: false,
       allowOutsideClick: false,

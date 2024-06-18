@@ -2,7 +2,7 @@ import sweetAlert from '../helper/sweetAlert.js'
 import quillControl from './quill.js'
 
 const defaultPost = {
-  title: 'New Post Title',
+  title: 'New Post',
   data: {}
 }
 
@@ -88,6 +88,23 @@ class Model {
       alert(err.message)
     }
   }
+  async deletePost(id) {
+    try {
+      if (!id) throw new Error('Missing post id')
+      return fetch(this.postUrl, {
+        method: 'Delete',
+        body: JSON.stringify({
+          id,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        }
+      })
+    } catch (err) {
+      console.error(err)
+      alert(err.message)
+    }
+  }
   async deleteObject(Key) {
     try {
       if (!Key) throw new Error('Missing object key')
@@ -124,19 +141,6 @@ class View {
     this.postsSelect = document.querySelector('#posts-select')
     this.editorContainer = document.querySelector('#editor-container')
     this.notifyTimeoutId = null
-    this.init()
-  }
-  init() {
-    // init some visual setup
-
-    // save button to  toolbar
-    const toolbar = document.querySelector('.ql-toolbar')
-    const saveBtn = document.createElement('button')
-    saveBtn.id = 'save'
-    saveBtn.classList.add('btn', 'btn-primary')
-    saveBtn.innerHTML = `<i class="fa-regular fa-floppy-disk"></i>`
-    toolbar.appendChild(saveBtn)
-
   }
   setEditorLoading(isLoading) {
     if (isLoading) {
@@ -146,7 +150,7 @@ class View {
       this.editorContainer.classList.remove('loading')
     }
   }
-  renderPostSelect = (posts, onChangeHandler, currentPost) => {
+  renderPostSelect = (posts, currentPost) => {
     // takes in posts [] to render post select
     this.postsSelect.innerHTML = ''
     // add default option
@@ -168,9 +172,6 @@ class View {
         option.selected = true
       }
     }
-
-    // add a onChange handler to the select itself
-    this.postsSelect.onchange = (e) => onChangeHandler(e)
   }
   renderEditor = (title, delta) => {
     this.titleInput.value = title
@@ -264,6 +265,37 @@ class View {
       this.notifyTimeoutId = null
     }, time)
   }
+  toolbarButtonsRender(isNewPost = false) {
+    // init some visual setup
+    // toolbar
+    const toolbar = document.querySelector('.ql-toolbar')
+
+    // buttons div
+    const oldButtonsDiv = document.querySelector('.buttons-div')
+    if (oldButtonsDiv) {
+      oldButtonsDiv.remove()
+    }
+    const buttonsDiv = document.createElement('div')
+    buttonsDiv.classList.add('buttons-div')
+    toolbar.appendChild(buttonsDiv)
+
+
+    // delete post button to toolbar
+    if (!isNewPost) {
+      const deleteBtn = document.createElement('button')
+      deleteBtn.id = 'delete-post'
+      deleteBtn.classList.add('btn')
+      deleteBtn.innerHTML = `<i class="fa-regular fa-trash-can"></i>`
+      buttonsDiv.appendChild(deleteBtn)
+    }
+
+    // save button to  toolbar
+    const saveBtn = document.createElement('button')
+    saveBtn.id = 'save'
+    saveBtn.classList.add('btn')
+    saveBtn.innerHTML = `<i class="fa-regular fa-floppy-disk"></i>`
+    buttonsDiv.appendChild(saveBtn)
+  }
 }
 
 class Controller {
@@ -273,7 +305,6 @@ class Controller {
     this.quillControl = quillControl
     this.sweetAlert = sweetAlert
     this.delta = null // quill's editor data
-    this.saveBtn = document.querySelector('#save')
     this.titleInput = document.querySelector('#title-input')
     this.init()
   }
@@ -281,12 +312,11 @@ class Controller {
     // disable editor before data loaded
     this.toggleEditor()
 
-    // editor default
-    this.view.renderEditor(defaultPost.title, defaultPost.delta)
-
     // get posts 
     this.model.getAllPosts().then(() => {
-      this.view.renderPostSelect(this.model.posts, this.postSelectHandler)
+      this.view.renderPostSelect(this.model.posts)
+      const select = document.querySelector('#posts-select')
+      select.onchange = this.postSelectHandler
     })
 
     // get objects data
@@ -295,8 +325,11 @@ class Controller {
       this.toggleEditor()
     })
 
-    // buttons handlers
-    this.saveBtn.onclick = (e) => this.createAndSaveMixHandler(e)
+    // toolbar buttons (save / delete )
+    this.view.toolbarButtonsRender(true)
+
+    // select post and render editor content
+    this.postSelectHandler()
 
     // -- shortcut handlers
     // ctrl + s
@@ -314,10 +347,27 @@ class Controller {
 
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
-
-
-
   }
+  buttonsHandlerSetup() {
+    // buttons handlers
+
+    // save (create) post 
+    const saveBtn = document.querySelector('#save')
+    if (saveBtn) {
+      saveBtn.onclick = (e) => this.createAndSaveMixHandler(e)
+    }
+
+    // delete post
+    const deleteBtn = document.querySelector('#delete-post')
+    if (deleteBtn) {
+      const postId = document.querySelector('#posts-select')?.value
+      if (!postId || postId == 'new') return
+      deleteBtn.onclick = () => {
+        this.deletePostHandler(postId)
+      }
+    }
+  }
+  // create post (save)
   async createHandler(e) {
     try {
       // loading button
@@ -332,7 +382,7 @@ class Controller {
 
       // render post select
       await this.model.getAllPosts()
-      this.view.renderPostSelect(this.model.posts, this.postSelectHandler)
+      this.view.renderPostSelect(this.model.posts)
 
       // select the newest post option
       const options = this.view.postsSelect.querySelectorAll('option')
@@ -345,6 +395,7 @@ class Controller {
       alert(err.message || err)
     }
   }
+  // save post (save)
   async saveHandler() {
     try {
       // Get current post
@@ -365,13 +416,31 @@ class Controller {
 
       // render post select
       await this.model.getAllPosts()
-      this.view.renderPostSelect(this.model.posts, this.postSelectHandler, this.model.currentPost)
+      this.view.renderPostSelect(this.model.posts, this.model.currentPost)
 
       // button reset
       resetButton()
 
       // notify saved
       this.view.notify('Saved')
+    } catch (err) {
+      alert(err.message || err)
+    }
+  }
+  async deletePostHandler(postId) {
+    try {
+      if (!postId) throw new Error('Post Id is missing')
+
+      const result = await sweetAlert.confirm('Do you want to delete post?')
+      if (!result.isConfirmed) return
+
+      const response = await this.model.deletePost(postId)
+      const json = await response.json()
+
+      if (!json.ok) throw new Error(json.error)
+      location.reload()
+
+
     } catch (err) {
       alert(err.message || err)
     }
@@ -392,12 +461,15 @@ class Controller {
       this.view.setEditorLoading(false)
     }
   }
-  postSelectHandler = (e) => {
-    const select = e.target
+  postSelectHandler = () => {
+    const select = document.querySelector('#posts-select')
     const postId = select.value
+
     if (postId === 'new') {
       // this is a new post
-      this.view.renderEditor(defaultPost.title, defaultPost.delta)
+      this.view.renderEditor(defaultPost.title, defaultPost.data)
+
+      // set current post
       this.model.currentPost = null
     } else {
       // load old post
@@ -406,6 +478,10 @@ class Controller {
       // set current post
       this.model.currentPost = post
     }
+
+    // button handler setup
+    this.view.toolbarButtonsRender(postId === 'new')
+    this.buttonsHandlerSetup()
   }
   // Quill handlers
   // this function is call within Quill, use arrow function to get current scope's 'this'

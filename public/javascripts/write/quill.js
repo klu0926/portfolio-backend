@@ -6,7 +6,7 @@ const toolbarOptions = {
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'color': [] }, { 'background': [] }],  // dropdown with defaults from theme
-    [{ 'font': [] }],
+    //[{ 'font': [] }],
     [{ 'align': [] }],
     ['clean'],
   ],
@@ -73,7 +73,6 @@ class QuillControl {
         handlerFunction.apply(this, arguments);
       }
     }
-
     var toolbar = quill.getModule('toolbar');
     toolbar.addHandler(key, guardFunction);
   }

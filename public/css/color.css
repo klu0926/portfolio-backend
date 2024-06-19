@@ -9,8 +9,8 @@
   --light: #f8f9fa;
   --dark: #343a40;
   --white: #ffffff;
-  --gray: #6c757d;
-  --gray-dark: #343a40;
+  --gray: #e3e2e2;
+  --gray-dark: #bcbcbc;
   --blue: #007bff;
   --indigo: #6610f2;
   --purple: #6f42c1;
@@ -21,4 +21,12 @@
   --green: #28a745;
   --teal: #20c997;
   --cyan: #17a2b8;
+}
+
+.bg-gray {
+  background-color: var(--gray);
+}
+
+.bg-gray-dark {
+  background-color: var(--gray-dark);
 }

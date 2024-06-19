@@ -134,7 +134,7 @@ const sweetAlert = {
     }, timer)
   },
   // didRenderHandler will run in didRender()
-  showImageSelection(urls) {
+  showImageSelection(urls, mode = 'editor') {
     if (!Array.isArray(urls) || urls.length === 0) {
       sweetAlert.error('Error', 'Missing images urls')
       return;
@@ -153,7 +153,7 @@ const sweetAlert = {
         popup: 'image-grid-popup',
       },
       didRender: () => {
-        this.didRenderHandlers.SweetImageSelectionDidRender()
+        this.didRenderHandlers.SweetImageSelectionDidRender(mode)
       }
     });
   }

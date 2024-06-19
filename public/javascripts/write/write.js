@@ -245,7 +245,6 @@ class View {
     }, time)
   }
   toolbarButtonsRender(isNewPost = false) {
-    console.log('render buttons')
     // init some visual setup
     // toolbar
     const toolbar = document.querySelector('.ql-toolbar')
@@ -311,6 +310,9 @@ class Controller {
     // select post and render editor content
     this.postSelectHandler()
 
+    // button handler setup
+    this.buttonsHandlerSetup()
+
     // -- shortcut handlers
     this.hotkeySetup()
 
@@ -324,7 +326,6 @@ class Controller {
     // command + s (save)
     document.addEventListener('keydown', (e) => {
       if (e.metaKey && e.key === 's') {
-        console.log('save')
         e.preventDefault()
         this.createAndSaveMixHandler()
       }
@@ -340,14 +341,11 @@ class Controller {
     return data
   }
   buttonsHandlerSetup() {
-    // buttons handlers
-
     // save (create) post 
     const saveBtn = document.querySelector('#save')
     if (saveBtn) {
       saveBtn.onclick = (e) => this.createAndSaveMixHandler(e)
     }
-
     // delete post
     const deleteBtn = document.querySelector('#delete-post')
     if (deleteBtn) {
@@ -355,6 +353,16 @@ class Controller {
       if (!postId || postId == 'new') return
       deleteBtn.onclick = () => {
         this.deletePostHandler(postId)
+      }
+    }
+    // cover select
+    const coverSelect = document.querySelector('#cover-select')
+    if (coverSelect) {
+      coverSelect.onclick = () => {
+        const files = this.model.objects.filter(item => item.size > 0)
+        const images = files.filter(file => file.url)
+        const urls = images.map(image => image.url)
+        sweetAlert.showImageSelection(urls, 'cover')
       }
     }
   }
@@ -373,6 +381,9 @@ class Controller {
       await this.model.getAllPosts()
       this.view.renderPostSelect(this.model.posts)
 
+      // set current post
+      this.model.currentPost = this.model.posts[this.model.posts.length - 1]
+
       // select the newest post option
       const options = this.view.postsSelect.querySelectorAll('option')
       options.forEach(option => option.selected = false)
@@ -380,6 +391,10 @@ class Controller {
 
       // render buttons
       this.view.toolbarButtonsRender(false)
+
+      // notify saved
+      this.view.notify('Post Created')
+
     } catch (err) {
       alert(err.message || err)
     } finally {
@@ -389,7 +404,6 @@ class Controller {
   }
   // save post (save)
   async saveHandler() {
-    console.log('save handler trigger')
     // loading button
     const saveButton = document.querySelector('#save')
     const resetButton = this.view.buttonLoading(saveButton)
@@ -441,8 +455,10 @@ class Controller {
   }
   createAndSaveMixHandler = (e) => {
     if (this.model.currentPost) {
+      console.log('save')
       this.saveHandler(e)
     } else {
+      console.log('create')
       this.createHandler(e)
     }
   }
@@ -492,13 +508,6 @@ class Controller {
     // create image select html
     this.view.renderImageSelection(files, this.model.prefix)
 
-    // image onclick handler
-    const images = document.querySelectorAll('.image-select img')
-    images.forEach(image => image.onclick = () => {
-      quillControl.insertImage(image.src)
-      sweetAlert.close()
-    })
-
     // delete button handler
     const deletes = document.querySelectorAll('.delete')
     deletes.forEach(d => {
@@ -530,7 +539,9 @@ class Controller {
   }
   // SweetAlert did render 
   // this function is call within SweetAlert, use arrow function to get current scope's 'this'
-  SweetImageSelectionDidRender = () => {
+  // mode : editor, insert image to editor
+  // mode : cover, insert url to cover input
+  SweetImageSelectionDidRender = (mode = 'editor') => {
     const folders = this.model.getDataType('folder') // folders
 
     // render images
@@ -556,6 +567,25 @@ class Controller {
       this.model.prefix = select.value
       this.renderImageSelection()
     }
+
+    // image onclick handler
+    const images = document.querySelectorAll('.image-select img')
+    images.forEach(image => image.onclick = () => {
+
+      // mode : editor (insert image)
+      if (mode === 'editor') {
+        quillControl.insertImage(image.src)
+      }
+      // mode: cover (insert url to cover input)
+      if (mode === 'cover') {
+        const coverInput = document.querySelector('#cover-input')
+        coverInput.value = image.src
+      }
+
+      // end
+      sweetAlert.close()
+    })
+
     // upload button
     const uploadBtn = document.querySelector('#upload')
     uploadBtn.onclick = (e) => { postFile(e) }

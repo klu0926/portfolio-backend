@@ -359,10 +359,7 @@ class Controller {
     const coverSelect = document.querySelector('#cover-select')
     if (coverSelect) {
       coverSelect.onclick = () => {
-        const files = this.model.objects.filter(item => item.size > 0)
-        const images = files.filter(file => file.url)
-        const urls = images.map(image => image.url)
-        sweetAlert.showImageSelection(urls, 'cover')
+        sweetAlert.showImageSelection('cover')
       }
     }
   }
@@ -493,49 +490,22 @@ class Controller {
     this.view.toolbarButtonsRender(postId === 'new')
     this.buttonsHandlerSetup()
   }
-  // Quill handlers
+  // Quill ------------------------
   // this function is call within Quill, use arrow function to get current scope's 'this'
+  // set up in init
   quillImageHandler = () => {
-    const files = this.model.objects.filter(item => item.size > 0)
-    const images = files.filter(file => file.url)
-    const urls = images.map(image => image.url)
-    this.sweetAlert.showImageSelection(urls)
+    this.sweetAlert.showImageSelection()
   }
-  // for SweetImageSelectionDidRender
-  renderImageSelection = () => {
+  // SweetAlert -------------------
+  // for SweetImageSelectionDidRender when select change
+  SweetImageSelectionOnChangeHandler = (mode) => {
     const files = this.model.getDataType('file')
 
     // create image select html
     this.view.renderImageSelection(files, this.model.prefix)
 
-    // delete button handler
-    const deletes = document.querySelectorAll('.delete')
-    deletes.forEach(d => {
-      d.onclick = async () => {
-        try {
-          // get key from parent .image-select
-          const imageSelect = d.parentElement
-          const key = imageSelect.dataset['key']
-
-          // confirm
-          const isConfirm = confirm(`Delete object key: ${key}?`)
-          if (isConfirm) {
-            sweetAlert.loading('deleting...')
-            await this.model.deleteObject(key)
-
-            // reload data
-            await this.model.fetchObjectsData()
-
-            // open image select
-            this.quillImageHandler()
-            //this.renderImageSelection()
-          }
-        } catch (err) {
-          alert(err)
-          this.sweetAlert.closeNow()
-        }
-      }
-    })
+    // handler
+    this.SweetImageSelectionHandlerSetup(mode)
   }
   // SweetAlert did render 
   // this function is call within SweetAlert, use arrow function to get current scope's 'this'
@@ -545,7 +515,7 @@ class Controller {
     const folders = this.model.getDataType('folder') // folders
 
     // render images
-    this.renderImageSelection()
+    this.SweetImageSelectionOnChangeHandler(mode)
 
     // prefix-select
     const select = document.querySelector('#prefix-select')
@@ -565,26 +535,11 @@ class Controller {
     })
     select.onchange = () => {
       this.model.prefix = select.value
-      this.renderImageSelection()
+      this.SweetImageSelectionOnChangeHandler(mode)  // this run when select change
     }
 
-    // image onclick handler
-    const images = document.querySelectorAll('.image-select img')
-    images.forEach(image => image.onclick = () => {
-
-      // mode : editor (insert image)
-      if (mode === 'editor') {
-        quillControl.insertImage(image.src)
-      }
-      // mode: cover (insert url to cover input)
-      if (mode === 'cover') {
-        const coverInput = document.querySelector('#cover-input')
-        coverInput.value = image.src
-      }
-
-      // end
-      sweetAlert.close()
-    })
+    // all handlers setup
+    this.SweetImageSelectionHandlerSetup(mode)
 
     // upload button
     const uploadBtn = document.querySelector('#upload')
@@ -611,7 +566,7 @@ class Controller {
 
         // render images
         await this.model.fetchObjectsData()
-        this.renderImageSelection()
+        this.SweetImageSelectionOnChangeHandler('editor')
 
         // upload button reset
         uploadBtn.innerText = 'Upload'
@@ -620,6 +575,55 @@ class Controller {
         alert(err)
       }
     }
+  }
+  SweetImageSelectionHandlerSetup(mode = 'editor') {
+
+    // image onclick handler
+    const imagesDiv = document.querySelectorAll('.image-select')
+    imagesDiv.forEach(div => div.onclick = () => {
+
+      const image = div.querySelector('img')
+
+      // mode : editor (insert image)
+      if (mode === 'editor') {
+        quillControl.insertImage(image.src)
+      }
+      // mode: cover (insert url to cover input)
+      if (mode === 'cover') {
+        const coverInput = document.querySelector('#cover-input')
+        coverInput.value = image.src
+      }
+      // end
+      sweetAlert.close()
+    })
+
+    // delete button handler
+    const deletes = document.querySelectorAll('.delete')
+    deletes.forEach(d => {
+      d.onclick = async () => {
+        try {
+          // get key from parent .image-select
+          const imageSelect = d.parentElement
+          const key = imageSelect.dataset['key']
+
+          // confirm
+          const isConfirm = confirm(`Delete object key: ${key}?`)
+          if (isConfirm) {
+            sweetAlert.loading('deleting...')
+            await this.model.deleteObject(key)
+
+            // reload data
+            await this.model.fetchObjectsData()
+
+            // open image select
+            this.quillImageHandler()
+          }
+        } catch (err) {
+          alert(err)
+          this.sweetAlert.closeNow()
+        }
+      }
+    })
   }
 }
 

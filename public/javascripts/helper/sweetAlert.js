@@ -134,11 +134,8 @@ const sweetAlert = {
     }, timer)
   },
   // didRenderHandler will run in didRender()
-  showImageSelection(urls, mode = 'editor') {
-    if (!Array.isArray(urls) || urls.length === 0) {
-      sweetAlert.error('Error', 'Missing images urls')
-      return;
-    }
+  showImageSelection(mode = 'editor') {
+
     // main template
     let sweetImagesSelectDiv = document.createElement('div')
     sweetImagesSelectDiv.classList.add('mt-2')

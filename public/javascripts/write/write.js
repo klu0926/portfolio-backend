@@ -191,14 +191,22 @@ class View {
 
       // append images to container div
       imagesContainerDiv.appendChild(imagesContainer)
-      return
+
+    } else {
+      // no images
+      const noImageText = document.createElement('p')
+      noImageText.innerText = 'No Images'
+      noImageText.classList.add('text-center', 'mt-3')
+      imagesContainerDiv.appendChild(noImageText)
     }
 
-    // no images
-    const noImageText = document.createElement('p')
-    noImageText.innerText = 'No Images'
-    noImageText.classList.add('text-center', 'mt-3')
-    imagesContainerDiv.appendChild(noImageText)
+    // images-container grid buttons
+    // const gridButtons = document.createElement('div')
+    // gridButtons.classList.add('image-container-grid-button-div')
+    // gridButtons.innerText = 'Grid buttons here...'
+
+    // imagesContainerDiv.insertAdjacentElement('afterend', gridButtons)
+
   }
   buttonLoading(button, loadingClass = 'loading-icon') {
     // take in a button element
@@ -624,10 +632,30 @@ class Controller {
         }
       }
     })
+
+
+    // grid input handler
+    const gridInput = document.querySelector('#grid-input')
+    if (gridInput) {
+      gridInput.onchange = () => {
+        const count = changeContainerGrid(gridInput.value)
+        gridInput.value = count
+      }
+    }
+    function changeContainerGrid(gridCount) {
+      if (gridCount === undefined) return
+      let count = gridCount
+      if (count > 4) count = 4
+      if (count < 1) count = 1
+      const imagesContainer = document.querySelector('.images-container')
+      imagesContainer.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+      return count
+    }
+    // ----
+
   }
 }
 
 const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
-

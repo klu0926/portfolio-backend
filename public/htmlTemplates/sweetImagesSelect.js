@@ -1,13 +1,29 @@
+const gridInputId= 'grid-input'
+const imageContainerGridButtonsDiv = `
+<div class='row'>
+
+<div class="col"></div>
+
+<div class="col input-group">
+  <span class="input-group-text" id="basic-addon2">Row</span>
+  <input id=${gridInputId} type="text" class="form-control image-container-grid-input" value="1" aria-label="grid input">
+</div>
+
+<div class="col"></div>
+</div>
+`
+
 // form to upload an image to s3
 // input: name, Key (hidden), Image
 // need to use js to combine name with current prefix (folder) to generate Key
 // server takes in {Key} from body, and Image from file input
 const uploadFormHtml = `
       <!--upload form-->
-          <div id="upload-form-container" class="container mb-5">
+          <div id="upload-form-container" class="container">
           <select id='prefix-select' class="form-select" aria-label="prefix-select">
           </select>
           <div id='images-container-div'></div>
+                ${imageContainerGridButtonsDiv}
           <div class='mt-4 bg-gray p-3 rounded'>
             <form
               id="upload-form"

@@ -1,5 +1,6 @@
 import sweetAlert from '../helper/sweetAlert.js'
 import quillControl from './quill.js'
+import '../helper/interact.js' // using interact
 
 const defaultPost = {
   title: 'New Post',
@@ -8,6 +9,11 @@ const defaultPost = {
   data: {},
   tags: [],
 }
+
+
+
+
+
 
 class Model {
   constructor() {
@@ -48,7 +54,7 @@ class Model {
       this.posts.forEach(post => {
         post.data = JSON.parse(post.data)
       })
-
+      console.log(this.posts)
     } catch (err) {
       alert(err.message)
     }
@@ -346,6 +352,7 @@ class Controller {
       description: document.querySelector('#description-input').value,
       data: this.quillControl.getContents()
     }
+    console.log('quill content:', data.data)
     return data
   }
   buttonsHandlerSetup() {
@@ -659,3 +666,7 @@ class Controller {
 const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
+
+
+
+

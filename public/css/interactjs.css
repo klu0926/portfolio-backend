@@ -1,0 +1,4 @@
+.resize-drag:hover {
+  cursor: pointer;
+  border: 1px solid red;
+}

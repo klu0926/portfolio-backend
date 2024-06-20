@@ -1,46 +1,9 @@
-import youtubeEmbed from "youtube-embed";
+import { VideoBlot, videoHandler } from "./quillBolts/VideoBlot";
+import { CustomImageBlot } from './quillBolts/imageBlot'
 
-// Create a new blot for the iframe
-// blot is the building block for Quill (inline, block, blockEmbed)
-// blockEmbed : block-level content that is not editable (image, video)
-const BlockEmbed = Quill.import('blots/block/embed');
-class IframeBlot extends BlockEmbed {
-  static create(value) {
-    let node = super.create();
-    node.setAttribute('frameborder', '0');
-    node.setAttribute('allowfullscreen', true);
-    node.setAttribute('src', value);
-    // Set minimum and maximum width
-    node.style.setProperty('width', '900px');
-    node.style.setProperty('max-width', '100%');
-    // Set minimum and maximum height
-    node.style.setProperty('height', '500px');
-    node.style.setProperty('max-height', '1000px');
-
-    return node;
-  }
-
-  static value(node) {
-    return node.getAttribute('src');
-  }
-}
-// blotName : internal name for blot within Quill (for reference)
-// tagName :  tell Quill which HTML element tag to use when render
-IframeBlot.blotName = 'iframe';
-IframeBlot.tagName = 'iframe';
-
-// Add a handler to override the video button
-function videoHandler() {
-  const range = this.quill.getSelection();
-  const value = prompt('Please enter video URL:');
-  if (value) {
-    // (location, blotName, value, user)
-    this.quill.insertEmbed(range.index, 'iframe', youtubeEmbed(value), Quill.sources.USER);
-  }
-}
-
-// register custom blot ()
-Quill.register(IframeBlot);
+// register custom blots
+Quill.register(VideoBlot);
+Quill.register(CustomImageBlot);
 
 
 // options
@@ -62,7 +25,6 @@ const toolbarOptions = {
   },
 }
 
-
 // quill options
 const options = {
   modules: {
@@ -73,8 +35,6 @@ const options = {
 
 const editor = document.querySelector('#editor')
 const quill = new Quill('#editor', options)
-
-
 
 // controller
 class QuillControl {
@@ -91,13 +51,17 @@ class QuillControl {
   }
   insertImage(url) {
     const index = quill.getSelection(true).index
-    quill.insertEmbed(index, 'image', url, 'user')
+    // use custom image blot
+    quill.insertEmbed(index, CustomImageBlot.blotName, url, {
+      alt: 'alt text',
+      title: 'title ',
+      style: 'width: 1000px; height: 500px;' // Example CSS styles
+    })
   }
   enable() {
     this.quill.enable()
     this.editor.style.backgroundColor = '#ffffff'
     this.toolbar.style.backgroundColor = '#ffffff'
-
   }
   disable() {
     this.quill.disable()
@@ -106,6 +70,10 @@ class QuillControl {
   }
   isEnable = () => {
     return this.quill.isEnabled()
+  }
+  // use to set ops attributes (imageBlot now use attributes to set image inline style)
+  format(key, value) {
+    quill.format(key, value);
   }
   // key is the handler key, the toolbar's button name
   setToolbarHandler(key, handlerFunction) {
@@ -123,4 +91,4 @@ class QuillControl {
 }
 
 const quillControl = new QuillControl(editor, quill)
-export default quillControl 
+export default quillControl

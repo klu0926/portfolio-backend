@@ -1,16 +1,22 @@
+import youtubeEmbed from "youtube-embed";
+
 // Create a new blot for the iframe
 // blot is the building block for Quill (inline, block, blockEmbed)
 // blockEmbed : block-level content that is not editable (image, video)
-
 const BlockEmbed = Quill.import('blots/block/embed');
 class IframeBlot extends BlockEmbed {
   static create(value) {
     let node = super.create();
     node.setAttribute('frameborder', '0');
     node.setAttribute('allowfullscreen', true);
-    node.setAttribute('width', '560');
-    node.setAttribute('height', '315');
     node.setAttribute('src', value);
+    // Set minimum and maximum width
+    node.style.setProperty('width', '900px');
+    node.style.setProperty('max-width', '100%');
+    // Set minimum and maximum height
+    node.style.setProperty('height', '500px');
+    node.style.setProperty('max-height', '1000px');
+
     return node;
   }
 
@@ -29,7 +35,7 @@ function videoHandler() {
   const value = prompt('Please enter video URL:');
   if (value) {
     // (location, blotName, value, user)
-    this.quill.insertEmbed(range.index, 'iframe', value, Quill.sources.USER);
+    this.quill.insertEmbed(range.index, 'iframe', youtubeEmbed(value), Quill.sources.USER);
   }
 }
 
@@ -67,8 +73,6 @@ const options = {
 
 const editor = document.querySelector('#editor')
 const quill = new Quill('#editor', options)
-
-
 
 
 

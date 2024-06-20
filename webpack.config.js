@@ -1,12 +1,9 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
   entry: {
-    bucket: [
-      './public/javascripts/bucket/bucketMVC.js'
-    ],
+    bucket: './public/javascripts/bucket/bucketMVC.js',
     write: [
       './public/javascripts/write/quill.js',
       './public/javascripts/write/write.js'
@@ -30,16 +27,6 @@ module.exports = {
       }
     ]
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      filename: 'bucket.html',
-      template: './public/bucket.html',
-      chunks: ['bucket']
-    }),
-    new HtmlWebpackPlugin({
-      filename: 'write.html',
-      template: './public/write.html',
-      chunks: ['write']
-    }),
-  ]
+  // Remove HtmlWebpackPlugin from plugins array
+  plugins: [],
 };

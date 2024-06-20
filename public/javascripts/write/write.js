@@ -631,5 +631,3 @@ const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
 
-// test
-alert('hi')

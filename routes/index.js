@@ -9,19 +9,15 @@ const ResponseError = require('../helper/ResponseError')
 // PAGES
 // S3 Objects
 router.get('/', (req, res) => {
-  const filePath = path.resolve('./public', 'bucket.html')
+  const filePath = path.resolve('./public/dist', 'bucket.html')
   res.sendFile(filePath)
 })
 // Quill Editor
 router.get('/write', (req, res) => {
-  const filePath = path.resolve('./public', 'write.html')
+  const filePath = path.resolve('./public/dist', 'write.html')
   res.sendFile(filePath)
 })
-// test page
-router.get('/test', async (req, res) => {
-  const filePath = path.resolve('./public', 'test.html')
-  res.sendFile(filePath)
-})
+
 
 
 // OBJECTS (AWS S3) 

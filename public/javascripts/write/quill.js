@@ -1,3 +1,43 @@
+// Create a new blot for the iframe
+// blot is the building block for Quill (inline, block, blockEmbed)
+// blockEmbed : block-level content that is not editable (image, video)
+
+const BlockEmbed = Quill.import('blots/block/embed');
+class IframeBlot extends BlockEmbed {
+  static create(value) {
+    let node = super.create();
+    node.setAttribute('frameborder', '0');
+    node.setAttribute('allowfullscreen', true);
+    node.setAttribute('width', '560');
+    node.setAttribute('height', '315');
+    node.setAttribute('src', value);
+    return node;
+  }
+
+  static value(node) {
+    return node.getAttribute('src');
+  }
+}
+// blotName : internal name for blot within Quill (for reference)
+// tagName :  tell Quill which HTML element tag to use when render
+IframeBlot.blotName = 'iframe';
+IframeBlot.tagName = 'iframe';
+
+// Add a handler to override the video button
+function videoHandler() {
+  const range = this.quill.getSelection();
+  const value = prompt('Please enter video URL:');
+  if (value) {
+    // (location, blotName, value, user)
+    this.quill.insertEmbed(range.index, 'iframe', value, Quill.sources.USER);
+  }
+}
+
+// register custom blot ()
+Quill.register(IframeBlot);
+
+
+// options
 const toolbarOptions = {
   container: [
     [{ 'size': ['small', false, 'large', 'huge'] }],
@@ -12,10 +52,7 @@ const toolbarOptions = {
   ],
   // override toolbar button handlers
   handlers: {
-    // use controller's setHandler method to set handler
-    // 'image': () => {
-    //   writeControl.quillImageHandler()
-    // }
+    'video': videoHandler
   },
 }
 
@@ -30,6 +67,9 @@ const options = {
 
 const editor = document.querySelector('#editor')
 const quill = new Quill('#editor', options)
+
+
+
 
 
 // controller

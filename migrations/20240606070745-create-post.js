@@ -24,6 +24,10 @@ module.exports = {
       tags: {
         type: Sequelize.STRING
       },
+      backgroundHex: {
+        type: Sequelize.STRING,
+        defaultValue: '#FFFFFF'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

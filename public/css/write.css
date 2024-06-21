@@ -144,7 +144,25 @@
   cursor: wait;
 }
 
-/* everything with in */
+/* editor tool */
+#editor-tool {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 5px;
+  padding: 10px;
+  margin: 10px 0px;
+}
+
+#editor-tool input {
+  cursor: pointer;
+}
+
+.fa-toolbox {
+  font-size: 1.4rem;
+}
+
+/* everything with in editor */
 #editor-container.loading > * {
   pointer-events: none;
 }

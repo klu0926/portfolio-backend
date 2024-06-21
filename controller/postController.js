@@ -31,7 +31,7 @@ const postController = {
   postPost: async (req, res) => {
     try {
       // check body
-      const { title, data, cover, description, tags } = req.body
+      const { title, data, cover, description, tags, background } = req.body
       const fields = { title, data, cover, description } // ignore tags for now
       const errorItems = []
 
@@ -48,7 +48,8 @@ const postController = {
         cover,
         description,
         tags: JSON.stringify(tags),
-        data: JSON.stringify(data)
+        data: JSON.stringify(data),
+        backgroundHex: background || '#FFFFFF'
       })
 
       // response
@@ -81,6 +82,7 @@ const postController = {
       if (data.description) post.description = data.description
       if (data.tags) post.tags = data.tags
       post.data = JSON.stringify(data.data) // allow empty data
+      if (data.background) post.backgroundHex = data.background
       await post.save()
 
       // response

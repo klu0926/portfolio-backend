@@ -10,11 +10,6 @@ const defaultPost = {
   tags: [],
 }
 
-
-
-
-
-
 class Model {
   constructor() {
     this.url = 'http://localhost:3000'
@@ -161,6 +156,7 @@ class View {
     document.querySelector('#cover-input').value = postObject.cover
     document.querySelector('#description-input').value = postObject.description
     quillControl.setContents(postObject.data)
+    document.querySelector('#bg-color-input').value = postObject.backgroundHex
   }
   // render the images in sweet alert's window (sweetImagesSelect)
   renderImageSelection = (files, prefix = '') => {
@@ -300,6 +296,10 @@ class View {
     imagesContainer.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
     return count
   }
+  renderEditorBackground(colorHex) {
+    const editor = document.querySelector('#editor')
+    editor.style.backgroundColor = colorHex
+  }
 }
 
 class Controller {
@@ -361,7 +361,8 @@ class Controller {
       title: document.querySelector('#title-input').value,
       cover: document.querySelector('#cover-input').value,
       description: document.querySelector('#description-input').value,
-      data: this.quillControl.getContents()
+      data: this.quillControl.getContents(),
+      background: document.querySelector('#bg-color-input').value
     }
     console.log('quill content:', data.data)
     return data
@@ -387,6 +388,14 @@ class Controller {
       coverSelect.onclick = () => {
         sweetAlert.showImageSelection('cover')
       }
+    }
+
+    // bg color input
+    const colorInput = document.querySelector('#bg-color-input')
+    if (colorInput) {
+      colorInput.addEventListener('input', () => {
+        this.view.renderEditorBackground(colorInput.value)
+      })
     }
   }
   // create post (save)
@@ -501,7 +510,6 @@ class Controller {
     if (postId === 'new') {
       // this is a new post
       this.view.renderInputValue(defaultPost)
-
       // set current post
       this.model.currentPost = null
     } else {
@@ -515,6 +523,19 @@ class Controller {
     // button handler setup
     this.view.toolbarButtonsRender(postId === 'new')
     this.buttonsHandlerSetup()
+
+    // editor background
+    const backgroundHex = this.model.currentPost?.backgroundHex
+    if (backgroundHex) {
+      this.view.renderEditorBackground(backgroundHex)
+      document.querySelector('#bg-color-input').value = backgroundHex
+    } else {
+      this.view.renderEditorBackground('#ffffff')
+      document.querySelector('#bg-color-input').value = '#ffffff'
+    }
+
+
+    console.log('current post:', this.model.currentPost)
   }
   // Quill ------------------------
   // this function is call within Quill, use arrow function to get current scope's 'this'
@@ -606,7 +627,6 @@ class Controller {
     }
   }
   SweetImageSelectionHandlerSetup(mode = 'editor') {
-
     // image onclick handler
     const imagesDiv = document.querySelectorAll('.image-select')
     imagesDiv.forEach(div => div.onclick = () => {

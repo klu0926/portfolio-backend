@@ -8,6 +8,7 @@ interact('.resize-drag')
 
     listeners: {
       move(event) {
+        x
         var target = event.target
         var x = (parseFloat(target.getAttribute('data-x')) || 0)
         var y = (parseFloat(target.getAttribute('data-y')) || 0)
@@ -34,7 +35,8 @@ interact('.resize-drag')
     modifiers: [
       // keep the edges inside the parent
       interact.modifiers.restrictEdges({
-        outer: 'parent'
+        outer: 'parent',
+        endOnly: true // *** allow free resizing without constrains before the end of action
       }),
 
       // minimum size

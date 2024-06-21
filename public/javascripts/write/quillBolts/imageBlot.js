@@ -1,6 +1,11 @@
-const BlockEmbed = Quill.import('blots/block/embed');
+// blots/block: block-level content like paragraph
+// blots/block/embed: block-level content that embeds other content like image, video
+// blots/embed: inline content that embeds other contents like image, video
 
-class CustomImageBlot extends BlockEmbed {
+const Embed = Quill.import('blots/embed');
+
+
+class CustomImageBlot extends Embed {
   static create(url) {
     const node = super.create();
     node.setAttribute('src', url);

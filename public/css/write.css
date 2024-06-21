@@ -175,11 +175,6 @@
   z-index: 10;
 }
 
-/* editor image */
-.ql-snow .ql-editor .quill-image {
-  cursor: pointer;
-}
-
 /* editor text size (base on google) */
 .ql-editor .ql-size-small {
   font-size: 12px;

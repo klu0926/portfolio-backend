@@ -1,4 +1,4 @@
-const gridInputId= 'grid-input'
+const gridInputId = 'grid-input'
 const imageContainerGridButtonsDiv = `
 <div class='row'>
 
@@ -6,7 +6,7 @@ const imageContainerGridButtonsDiv = `
 
 <div class="col input-group">
   <span class="input-group-text" id="basic-addon2">Row</span>
-  <input id=${gridInputId} type="text" class="form-control image-container-grid-input" value="1" aria-label="grid input">
+  <input id=${gridInputId} type="text" class="form-control image-container-grid-input" value="2" aria-label="grid input">
 </div>
 
 <div class="col"></div>

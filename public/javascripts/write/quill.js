@@ -52,11 +52,7 @@ class QuillControl {
   insertImage(url) {
     const index = quill.getSelection(true).index
     // use custom image blot
-    quill.insertEmbed(index, CustomImageBlot.blotName, url, {
-      alt: 'alt text',
-      title: 'title ',
-      style: 'width: 1000px; height: 500px;' // Example CSS styles
-    })
+    quill.insertEmbed(index, CustomImageBlot.blotName, url, 'user')
   }
   enable() {
     this.quill.enable()

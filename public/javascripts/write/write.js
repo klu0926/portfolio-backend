@@ -289,6 +289,17 @@ class View {
     saveBtn.innerHTML = `<i class="fa-regular fa-floppy-disk"></i>`
     buttonsDiv.appendChild(saveBtn)
   }
+  renderImageSelectGrid() {
+    const gridInput = document.querySelector('#grid-input')
+    if (gridInput?.value === undefined) return
+
+    let count = gridInput.value
+    if (count > 4) count = 4
+    if (count < 1) count = 1
+    const imagesContainer = document.querySelector('.images-container')
+    imagesContainer.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+    return count
+  }
 }
 
 class Controller {
@@ -521,6 +532,9 @@ class Controller {
 
     // handler
     this.SweetImageSelectionHandlerSetup(mode)
+
+    // render image container grid
+    this.view.renderImageSelectGrid()
   }
   // SweetAlert did render 
   // this function is call within SweetAlert, use arrow function to get current scope's 'this'
@@ -639,27 +653,13 @@ class Controller {
         }
       }
     })
-
-
     // grid input handler
     const gridInput = document.querySelector('#grid-input')
     if (gridInput) {
       gridInput.onchange = () => {
-        const count = changeContainerGrid(gridInput.value)
-        gridInput.value = count
+        this.view.renderImageSelectGrid()
       }
     }
-    function changeContainerGrid(gridCount) {
-      if (gridCount === undefined) return
-      let count = gridCount
-      if (count > 4) count = 4
-      if (count < 1) count = 1
-      const imagesContainer = document.querySelector('.images-container')
-      imagesContainer.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
-      return count
-    }
-    // ----
-
   }
 }
 

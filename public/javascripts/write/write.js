@@ -534,7 +534,6 @@ class Controller {
       document.querySelector('#bg-color-input').value = '#ffffff'
     }
 
-
     console.log('current post:', this.model.currentPost)
   }
   // Quill ------------------------
@@ -689,4 +688,12 @@ const controller = new Controller(model, view, quillControl, sweetAlert)
 
 
 
+
+//
+const btn = document.createElement('button')
+btn.innerText = 'get delta'
+document.body.appendChild(btn)
+btn.onclick = () => {
+  console.log(quillControl.getContents())
+}
 

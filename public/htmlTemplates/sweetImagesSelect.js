@@ -20,7 +20,7 @@ const imageContainerGridButtonsDiv = `
 const uploadFormHtml = `
       <!--upload form-->
           <div id="upload-form-container" class="container">
-          <select id='prefix-select' class="form-select" aria-label="prefix-select">
+          <select id='prefix-select' class="form-select">
           </select>
           <div id='images-container-div'></div>
                 ${imageContainerGridButtonsDiv}

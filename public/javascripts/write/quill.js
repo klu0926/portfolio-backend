@@ -1,5 +1,6 @@
 import { VideoBlot, videoHandler } from "./quillBolts/VideoBlot";
 import { CustomImageBlot } from './quillBolts/imageBlot'
+import { textColorHandler } from './quillBolts/textColorHandler'
 
 // register custom blots
 Quill.register(VideoBlot);
@@ -14,14 +15,15 @@ const toolbarOptions = {
     ['link', 'image', 'video'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
-    [{ 'color': [] }, { 'background': [] }],  // dropdown with defaults from theme
+    ['color', { 'background': [] }],  // dropdown with defaults from theme
     //[{ 'font': [] }],
     [{ 'align': [] }],
     ['clean'],
   ],
   // override toolbar button handlers
   handlers: {
-    'video': videoHandler
+    'video': videoHandler,
+    'color': textColorHandler
   },
 }
 

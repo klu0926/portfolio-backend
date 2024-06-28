@@ -1,5 +1,5 @@
-const interact = require('interactjs')
-import quillControl from '../write/quill'
+const interact = require('interactjs');
+import quillControl from '../write/quill';
 
 interact('.resize-drag')
   .resizable({
@@ -8,38 +8,43 @@ interact('.resize-drag')
 
     listeners: {
       move(event) {
-        x
-        var target = event.target
-        var x = (parseFloat(target.getAttribute('data-x')) || 0)
-        var y = (parseFloat(target.getAttribute('data-y')) || 0)
+        var target = event.target;
 
-        // update the element's style
-        target.style.width = event.rect.width + 'px'
-        target.style.height = event.rect.height + 'px'
+        // Calculate width and height as percentages relative to the parent element
+        var parentWidth = target.parentElement.offsetWidth;
+        var parentHeight = target.parentElement.offsetHeight;
 
-        // use quill controller
-        quillControl.format('width', target.style.width)
-        quillControl.format('height', target.style.height)
+        var widthPercent = (event.rect.width / parentWidth) * 100;
+        var heightPercent = (event.rect.height / parentHeight) * 100;
 
-        // translate when resizing from top or left edges
-        x += event.deltaRect.left
-        y += event.deltaRect.top
+        // Update the element's style with percentage values
+        target.style.width = widthPercent + '%';
+        target.style.height = heightPercent + '%';
 
-        target.style.transform = 'translate(' + x + 'px,' + y + 'px)'
+        // Use quill controller to update Quill editor
+        quillControl.format('width', `${parseFloat(widthPercent).toFixed(2)}%`);
+        quillControl.format('height', `${parseFloat(heightPercent).toFixed(2)}%`);
 
-        target.setAttribute('data-x', x)
-        target.setAttribute('data-y', y)
-        target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)
+        // Translate when resizing from top or left edges
+        var x = (parseFloat(target.getAttribute('data-x')) || 0);
+        var y = (parseFloat(target.getAttribute('data-y')) || 0);
+        x += event.deltaRect.left;
+        y += event.deltaRect.top;
+        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+
+        target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
       }
     },
     modifiers: [
-      // keep the edges inside the parent
+      // Keep the edges inside the parent
       interact.modifiers.restrictEdges({
         outer: 'parent',
-        endOnly: true // *** allow free resizing without constrains before the end of action
+        endOnly: true // Allow free resizing without constraints before the end of action
       }),
 
-      // minimum size
+      // Minimum size
       interact.modifiers.restrictSize({
         min: { width: 100, height: 50 }
       })
@@ -56,4 +61,4 @@ interact('.resize-drag')
         endOnly: true
       })
     ]
-  })  
+  });

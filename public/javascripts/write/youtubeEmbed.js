@@ -2,6 +2,8 @@
 const youtubeEmbed = require('youtube-embed')
 
 export default function youtubeEmbedConverter(url, autoplay = true, loop = true) {
+
+
   if (!url.includes('youtube')) return url
   if (url.includes('embed')) return url
 
@@ -12,5 +14,8 @@ export default function youtubeEmbedConverter(url, autoplay = true, loop = true)
   embedUrl = youtubeEmbed(url) + '?'
   if (autoplay) embedUrl += 'autoplay=1&mute=1&'
   if (loop) embedUrl += `loop=1&playlist=${videoId}`
-  return embedUrl
+
+  // convert to no cookie youtube
+  const noCookieEmbedUrl = embedUrl.replace('www.youtube.com', 'www.youtube-nocookie.com')
+  return noCookieEmbedUrl
 }

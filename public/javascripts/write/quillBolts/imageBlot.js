@@ -10,6 +10,7 @@ class CustomImageBlot extends Embed {
     const node = super.create();
     node.setAttribute('src', url);
     node.setAttribute('class', 'quill-image resize-drag');
+    node.setAttribute('width', '100%');
     return node;
   }
 
@@ -25,6 +26,7 @@ class CustomImageBlot extends Embed {
     return format;
   }
 
+  // when quill is using the .formate method on a object (quill.formate)
   format(name, value) {
     if (name === 'height' || name === 'width') {
       if (value) {

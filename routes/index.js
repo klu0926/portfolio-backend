@@ -39,6 +39,9 @@ router.get('/tags/:tagId', tagController.getTag)
 router.get('/tags', tagController.getTag)
 router.post('/tags', tagController.createTag)
 router.delete('/tags', tagController.deleteTag)
+router.post('/tag-post', tagController.createPostTag)
+router.delete('/tag-post', tagController.deletePostTag)
+
 
 // 404
 router.use((req, res) => {

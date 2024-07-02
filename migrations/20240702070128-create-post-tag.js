@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
 
       },
-      TagId: {
+      tagId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },

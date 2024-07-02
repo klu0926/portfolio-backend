@@ -21,9 +21,6 @@ module.exports = {
       description: {
         type: Sequelize.STRING
       },
-      tags: {
-        type: Sequelize.STRING
-      },
       backgroundHex: {
         type: Sequelize.STRING,
         defaultValue: '#FFFFFF'

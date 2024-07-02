@@ -1,5 +1,5 @@
 const responseJSON = require('../helper/responseJSON')
-const { Post } = require('../models/')
+const { Post, Tag, PostTag } = require('../models/')
 const ResponseError = require('../helper/ResponseError')
 
 const postController = {
@@ -11,10 +11,43 @@ const postController = {
       const { postId } = req.params
 
       // get one post or all post
+      const includesArray = [
+        {
+          model: Tag,
+          as: 'tags',
+          attributes: ['id', 'name'],
+          through: {
+            model: PostTag,
+            attributes: []
+          }
+        }
+      ]
+
       if (postId) {
-        data = await Post.findOne({ where: { id: postId }, raw: true })
+        data = await Post.findOne({
+          where: { id: postId },
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          },
+          include: includesArray,
+        })
       } else {
-        data = await Post.findAll({ raw: true })
+        data = await Post.findAll({
+          attributes: {
+            exclude: ['createdAt', 'updatedAt']
+          },
+          include: includesArray,
+        })
+      }
+      if (!data) {
+        throw new ResponseError('Fail to get Post', 400)
+      }
+
+      // convert to json
+      if (Array.isArray(data)) {
+        data = data.map(post => post.toJSON())
+      } else {
+        data = data.toJSON()
       }
 
       // If find one post fail
@@ -31,7 +64,7 @@ const postController = {
   postPost: async (req, res) => {
     try {
       // check body
-      const { title, data, cover, description, tags, background } = req.body
+      const { title, data, cover, description, background } = req.body
       const fields = { title, data, cover, description } // ignore tags for now
       const errorItems = []
 
@@ -47,7 +80,6 @@ const postController = {
         title,
         cover,
         description,
-        tags: JSON.stringify(tags),
         data: JSON.stringify(data),
         backgroundHex: background || '#FFFFFF'
       })
@@ -64,8 +96,6 @@ const postController = {
       // check body
       const { id, data } = req.body
 
-      console.log(req.body)
-
       if (!id) {
         throw new ResponseError('Missing put post id', 400)
       }
@@ -80,7 +110,6 @@ const postController = {
       if (data.title) post.title = data.title
       if (data.cover) post.cover = data.cover
       if (data.description) post.description = data.description
-      if (data.tags) post.tags = data.tags
       post.data = JSON.stringify(data.data) // allow empty data
       if (data.background) post.backgroundHex = data.background
       await post.save()

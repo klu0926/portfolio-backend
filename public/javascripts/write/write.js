@@ -364,7 +364,6 @@ class Controller {
       data: this.quillControl.getContents(),
       background: document.querySelector('#bg-color-input').value
     }
-    console.log('quill content:', data.data)
     return data
   }
   buttonsHandlerSetup() {

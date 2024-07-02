@@ -5,7 +5,12 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
-      Post.belongsToMany(models.Tag, { through: models.PostTag })
+      Post.belongsToMany(models.Tag, {
+        through: models.PostTag,
+        foreignKey: 'postId',
+        as: 'tags',
+        onDelete: 'CASCADE'
+      })
     }
   }
   Post.init({
@@ -13,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     cover: DataTypes.STRING,
     data: DataTypes.TEXT,
     description: DataTypes.STRING,
-    tags: DataTypes.STRING,
     backgroundHex: DataTypes.STRING
   }, {
     sequelize,

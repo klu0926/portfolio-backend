@@ -33,6 +33,8 @@ router.get('/posts', postController.getPost)
 router.post('/posts', postController.postPost)
 router.put('/posts', postController.putPost)
 router.delete('/posts', postController.deletePost)
+// post order
+router.put('/posts/swap-order', postController.swapPostsOrder)
 
 // ------ TAG
 router.get('/tags/:tagId', tagController.getTag)

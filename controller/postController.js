@@ -1,6 +1,7 @@
 const responseJSON = require('../helper/responseJSON')
 const { Post, Tag, PostTag } = require('../models/')
 const ResponseError = require('../helper/ResponseError')
+const errorResponse = require('../helper/errorResponse')
 
 const postController = {
   // Get one or all post
@@ -57,8 +58,7 @@ const postController = {
       // response
       res.status(200).json(responseJSON(true, 'GET', data, 'Successfully get post'))
     } catch (err) {
-      console.error(err)
-      res.status(err.status || 500).json(responseJSON(false, 'GET', null, err.message, err))
+      errorResponse(res, err, 'GET')
     }
   },
   postPost: async (req, res) => {
@@ -75,20 +75,24 @@ const postController = {
         throw new ResponseError(`Missing fields: ${errorItems.join(',')}`, 400)
       }
 
+      // find max order
+      const maxOrderPost = await Post.findOne({ order: [['order', 'DESC']] });
+      const maxOrder = maxOrderPost ? maxOrderPost.order : 0
+
       // create post
       const post = await Post.create({
         title,
         cover,
         description,
         data: JSON.stringify(data),
-        backgroundHex: background || '#FFFFFF'
+        backgroundHex: background || '#FFFFFF',
+        order: maxOrder + 1
       })
 
       // response
       res.status(201).json(responseJSON(true, 'POST', post, 'Successfully created new post'))
     } catch (err) {
-      console.error(err)
-      res.status(err.statusCode || 500).json(responseJSON(false, 'POST', null, err.message, err))
+      errorResponse(res, err, 'POST')
     }
   },
   putPost: async (req, res) => {
@@ -117,8 +121,7 @@ const postController = {
       // response
       res.status(201).json(responseJSON(true, 'PUT', post, 'Successfully updated post'))
     } catch (err) {
-      console.error(err)
-      res.status(err.statusCode || 500).json(responseJSON(false, 'PUT', null, err.message, err))
+      errorResponse(res, err, 'PUT')
     }
   },
   deletePost: async (req, res) => {
@@ -139,8 +142,43 @@ const postController = {
       // response
       res.status(200).json(responseJSON(true, 'DELETE', null, 'Successfully deleted post'))
     } catch (err) {
-      console.error(err)
-      res.status(err.statusCode || 500).json(responseJSON(false, 'DELETE', err.message, err))
+      errorResponse(res, err, 'DELETE')
+    }
+  },
+  swapPostsOrder: async (req, res) => {
+    try {
+      const { postId1, postId2 } = req.body
+
+      const post1 = await Post.findByPk(postId1)
+      const post2 = await Post.findByPk(postId2)
+
+      // check both post exist
+      let errorMessages = []
+      if (!post1) {
+        errorMessages.push(`Can not find first post with id: ${postId1}`)
+      }
+      if (!post2) {
+        errorMessages.push(`Can not find second post with id: ${postId2}`)
+      }
+      if (errorMessages.length > 0) {
+        throw new ResponseError(errorMessages.join(' , '), 400)
+      }
+
+      // swap order
+      const tempOrder = post1.order
+      post1.order = post2.order
+      post2.order = tempOrder
+      await post1.save()
+      await post2.save()
+
+      // response
+      const data = [
+        post1.toJSON(),
+        post2.toJSON()
+      ]
+      res.status(200).json(responseJSON(true, 'PUT', data, 'Successfully swap post oder'))
+    } catch (err) {
+      errorResponse(res, err, 'DELETE')
     }
   }
 }

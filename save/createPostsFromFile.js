@@ -10,7 +10,7 @@ async function createPostsFromFile(posts) {
 
     // create posts 
     const postsCreatePromises = posts.map(post => {
-      const { title, cover, description, tags, data, backgroundHex } = post
+      const { title, cover, description, tags, data, backgroundHex, order } = post
       // Post.create create promise, then return this promise 
       return Post.create({
         title,
@@ -18,6 +18,7 @@ async function createPostsFromFile(posts) {
         description,
         tags,
         data,
+        order,
         backgroundHex: backgroundHex || '#FFFFFF'
       })
     })

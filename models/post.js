@@ -18,7 +18,8 @@ module.exports = (sequelize, DataTypes) => {
     cover: DataTypes.STRING,
     data: DataTypes.TEXT,
     description: DataTypes.STRING,
-    backgroundHex: DataTypes.STRING
+    backgroundHex: DataTypes.STRING,
+    order: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Post',

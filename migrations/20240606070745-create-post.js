@@ -25,6 +25,10 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: '#FFFFFF'
       },
+      order: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

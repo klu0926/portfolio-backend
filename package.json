@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "dev": "webpack --watch --mode development & nodemon app.js",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "create-posts": "node save/createPostsFromFile.js",
+    "db-reset": "npx sequelize db:migrate:undo:all && npx sequelize db:migrate"
   },
   "keywords": [],
   "author": "",

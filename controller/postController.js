@@ -7,7 +7,7 @@ const postController = {
   getPost: async (req, res) => {
     try {
       let data = null
-      // check id
+
       const { postId } = req.params
 
       // get one post or all post
@@ -36,7 +36,7 @@ const postController = {
       const errorItems = []
 
       // check description char within 255
-      
+
 
       Object.keys(fields).forEach(key => {
         if (!fields[key]) errorItems.push(key)

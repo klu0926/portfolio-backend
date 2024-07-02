@@ -5,6 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
+      Post.belongsToMany(models.Tag, { through: models.PostTag })
     }
   }
   Post.init({

@@ -35,9 +35,6 @@ const postController = {
       const fields = { title, data, cover, description } // ignore tags for now
       const errorItems = []
 
-      // check description char within 255
-
-
       Object.keys(fields).forEach(key => {
         if (!fields[key]) errorItems.push(key)
       })

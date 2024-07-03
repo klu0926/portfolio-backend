@@ -8,7 +8,6 @@ const postController = {
   getPost: async (req, res) => {
     try {
       let data = null
-
       const { postId } = req.params
 
       // get one post or all post
@@ -28,15 +27,16 @@ const postController = {
         data = await Post.findOne({
           where: { id: postId },
           attributes: {
-            exclude: ['createdAt', 'updatedAt']
+            exclude: ['updatedAt']
           },
           include: includesArray,
         })
       } else {
         data = await Post.findAll({
           attributes: {
-            exclude: ['createdAt', 'updatedAt']
+            exclude: ['updatedAt']
           },
+          order: [['order', 'ASC']], // sort with post.order
           include: includesArray,
         })
       }
@@ -50,6 +50,8 @@ const postController = {
       } else {
         data = data.toJSON()
       }
+
+      console.log('post:', data)
 
       // If find one post fail
       if (postId && !data) {
@@ -148,7 +150,6 @@ const postController = {
   swapPostsOrder: async (req, res) => {
     try {
       const { postId1, postId2 } = req.body
-
       const post1 = await Post.findByPk(postId1)
       const post2 = await Post.findByPk(postId2)
 

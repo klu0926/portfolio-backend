@@ -2,21 +2,15 @@ const router = require('express').Router()
 const path = require('path')
 const upload = require('../middleware/multer')
 const tinyfy = require('../middleware/tinyfy')
+const tagController = require('../controller/tagController')
 const objectsController = require('../controller/objectsController')
 const postController = require('../controller/postController')
-const tagController = require('../controller/tagController')
 const ResponseError = require('../helper/ResponseError')
 
 // -------- PAGES
-// S3 Objects
+// ROOT -> S3 Bucket Page
 router.get('/', (req, res) => {
-  const filePath = path.resolve('./public', 'bucket.html')
-  res.sendFile(filePath)
-})
-// Quill Editor
-router.get('/write', (req, res) => {
-  const filePath = path.resolve('./public', 'write.html')
-  res.sendFile(filePath)
+  res.redirect('/bucket.html')
 })
 
 // ----- OBJECTS (AWS S3) 

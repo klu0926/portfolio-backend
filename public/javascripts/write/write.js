@@ -49,7 +49,7 @@ class Model {
       this.posts.forEach(post => {
         post.data = JSON.parse(post.data)
       })
-      console.log(this.posts)
+      console.log('get all posts:', this.posts)
     } catch (err) {
       alert(err.message)
     }
@@ -128,7 +128,7 @@ class View {
       this.editorContainer.classList.remove('loading')
     }
   }
-  renderPostSelect = (posts, currentPost) => {
+  renderPostSelect = (posts, currentPostId) => {
     // takes in posts [] to render post select
     this.postsSelect.innerHTML = ''
     // add default option
@@ -146,7 +146,7 @@ class View {
       this.postsSelect.appendChild(option)
 
       // select the current post is has one
-      if (currentPost && Number(currentPost.id) === Number(posts[i].id)) {
+      if (Number(currentPostId) === Number(posts[i].id)) {
         option.selected = true
       }
     }
@@ -254,7 +254,7 @@ class View {
       this.notifyTimeoutId = null
     }, time)
   }
-  toolbarButtonsRender(isNewPost = false) {
+  toolbarButtonsRender(hasPost) {
     // init some visual setup
     // toolbar
     const toolbar = document.querySelector('.ql-toolbar')
@@ -270,7 +270,7 @@ class View {
 
 
     // delete post button to toolbar
-    if (!isNewPost) {
+    if (hasPost) {
       const deleteBtn = document.createElement('button')
       deleteBtn.id = 'delete-post'
       deleteBtn.classList.add('btn')
@@ -312,28 +312,34 @@ class Controller {
     this.titleInput = document.querySelector('#title-input')
     this.init()
   }
-  init() {
+  async init() {
     // disable editor before data loaded
     this.toggleEditor()
 
     // get posts 
-    this.model.getAllPosts().then(() => {
-      this.view.renderPostSelect(this.model.posts)
-      const select = document.querySelector('#posts-select')
-      select.onchange = this.postSelectHandler
+    await this.model.getAllPosts()
+
+    // get query postId and select that post, 
+    // if no query postId, use new post
+    const queryPostId = this.query.get('postId')
+    this.renderPost(queryPostId)
+
+    // render post select element
+    this.view.renderPostSelect(this.model.posts, queryPostId)
+
+    // set up select handler
+    const select = document.querySelector('#posts-select')
+    select.addEventListener('change', (e) => {
+      this.postSelectHandler(e)
     })
 
-    // get objects data
+    // get objects data (allow code below to run without blocking)
     this.model.fetchObjectsData().then(() => {
-      // enable editor after data loaded
-      this.toggleEditor()
+      this.toggleEditor() // enable editor
     })
 
     // toolbar buttons (save / delete )
-    this.view.toolbarButtonsRender(true)
-
-    // select post and render editor content
-    this.postSelectHandler()
+    this.view.toolbarButtonsRender(this.model.currentPost)
 
     // button handler setup
     this.buttonsHandlerSetup()
@@ -347,6 +353,23 @@ class Controller {
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
   }
+  query = {
+    searchParams: new URLSearchParams(window.location.search),
+    get(queryKey) {
+      return this.searchParams.get(queryKey)
+    },
+    set(queryKey, value) {
+      this.searchParams.set(queryKey, value)
+      const newUrl = `${window.location.pathname}?${this.searchParams.toString()}`
+      history.replaceState({}, '', newUrl);
+    },
+    setAndGoTo(queryKey, value) {
+      this.searchParams.set(queryKey, value)
+      const newUrl = `${window.location.pathname}?${this.searchParams.toString()}`
+      window.location.href = newUrl
+    }
+  }
+
   hotkeySetup() {
     // command + s (save)
     document.addEventListener('keydown', (e) => {
@@ -421,11 +444,14 @@ class Controller {
       options[options.length - 1].selected = true
 
       // render buttons
-      this.view.toolbarButtonsRender(false)
+      this.view.toolbarButtonsRender(this.model.currentPost)
 
       // notify saved
       this.view.notify('Post Created')
 
+      // change url query
+      const currentPost = this.model.currentPost
+      this.query.set('postId', currentPost.id)
     } catch (err) {
       alert(err.message || err)
     } finally {
@@ -454,11 +480,11 @@ class Controller {
 
       // render post select
       await this.model.getAllPosts()
-      this.view.renderPostSelect(this.model.posts, this.model.currentPost)
+      this.view.renderPostSelect(this.model.posts, this.model.currentPost.id)
 
       // notify saved
       this.view.notify('Saved')
-      this.view.toolbarButtonsRender(false)
+      this.view.toolbarButtonsRender(this.model.currentPost)
 
     } catch (err) {
       alert(err.message || err)
@@ -477,7 +503,9 @@ class Controller {
       const json = await response.json()
 
       if (!json.ok) throw new Error(json.error)
-      location.reload()
+      
+      // set query and reload
+      this.query.setAndGoTo('postId', 'new')
 
 
     } catch (err) {
@@ -502,25 +530,22 @@ class Controller {
       this.view.setEditorLoading(false)
     }
   }
-  postSelectHandler = () => {
-    const select = document.querySelector('#posts-select')
-    const postId = select.value
-
-    if (postId === 'new') {
+  renderPost(queryPostId) {
+    if (queryPostId === 'new') {
       // this is a new post
       this.view.renderInputValue(defaultPost)
       // set current post
       this.model.currentPost = null
     } else {
       // load old post
-      const post = this.model.posts.find(post => Number(post.id) === Number(postId))
+      const post = this.model.posts.find(post => Number(post.id) === Number(queryPostId))
       this.view.renderInputValue(post)
       // set current post
       this.model.currentPost = post
     }
 
     // button handler setup
-    this.view.toolbarButtonsRender(postId === 'new')
+    this.view.toolbarButtonsRender(this.model.currentPost)
     this.buttonsHandlerSetup()
 
     // editor background
@@ -532,8 +557,10 @@ class Controller {
       this.view.renderEditorBackground('#ffffff')
       document.querySelector('#bg-color-input').value = '#ffffff'
     }
-
-    console.log('current post:', this.model.currentPost)
+  }
+  postSelectHandler = (event) => {
+    const postId = event.target.value
+    this.query.setAndGoTo('postId', postId)
   }
   // Quill ------------------------
   // this function is call within Quill, use arrow function to get current scope's 'this'

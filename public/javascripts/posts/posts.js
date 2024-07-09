@@ -45,6 +45,18 @@ class Model {
       sweetAlert.error('swap post order error:', err.message)
     }
   }
+  async deletePost(id) {
+    if (!id) throw new Error('Missing post id')
+    return fetch(this.postUrl, {
+      method: 'Delete',
+      body: JSON.stringify({
+        id,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+  }
 }
 
 // ---------- VIEW
@@ -53,15 +65,23 @@ class View {
     this.tableBody = document.querySelector('#table-body')
   }
   renderPostsTable(posts) {
-    let postsRows = posts.map(post => {
+    let postsRows = posts.map((post, index) => {
+
+      const url = window.location.href
+      const base = new URL(url).origin
+      const postUrl = base + '/write.html' + '?' + 'postId=' + post.id
+
       return `
       <tr class='post-row' draggable="true" data-post-id=${post.id}>
         <th class='post-td' scope="row">
-        <span class="text-primary">${post.order}</span>
+        <span>${index + 1}</span>
         </td>
-        <td class='post-td'>${post.title}</td>
+        <td class='post-td'>
+        <a href='${postUrl}' target='_blank'>${post.title}</a>
+        </td>
         <td class='post-td'>${post.id}</th>
         <td class='post-td'>${dayjs(post.createdAt).format('MMM D, YYYY  h:mm A	')}</td>
+         <td class='post-td'><button class="btn btn-danger delete" data-id='${post.id}'>delete</button></th>
       </tr>`
     });
     this.tableBody.innerHTML = postsRows.join('')
@@ -88,7 +108,7 @@ class Controller {
     this.view.renderPostsTable(this.model.posts)
     this.postsTableHandlerSetup()
   }
-  postsTableHandlerSetup() {
+  postsTableHandlerSetup = () => {
     // posts table handlers 
     const postRows = document.querySelectorAll('.post-row')
     postRows.forEach(row => {
@@ -104,7 +124,12 @@ class Controller {
       row.addEventListener('dragover', this.dragOver_handler)
       row.addEventListener('drop', this.drop_handler)
 
+      // delete button
+      const deleteBtn = row.querySelector('.delete')
+      deleteBtn.addEventListener('click', this.deletePostHandler)
     })
+
+
   }
   dragStart_handler = (e) => {
     e.target.classList.add('table-primary')
@@ -154,9 +179,29 @@ class Controller {
     await this.model.fetchPosts()
     this.view.renderPostsTable()
   }
+  deletePostHandler = async (e) => {
+    try {
+      const result = await sweetAlert.confirm('Delete Post?')
+
+      if (result.isConfirmed) {
+        const postId = e.target.dataset.id
+        const response = await this.model.deletePost(postId)
+        const json = await response.json()
+        if (!json.ok) throw new Error(json.error)
+        await sweetAlert.success('Post Deleted')
+        window.location.reload()
+      }
+
+    } catch (err) {
+      sweetAlert.error('Fail to Delete', err.message)
+    }
+  }
 }
 
-const model = new Model()
-const view = new View()
-const controller = new Controller(model, view)
-controller.init()
+document.addEventListener('DOMContentLoaded', () => {
+
+  const model = new Model()
+  const view = new View()
+  const controller = new Controller(model, view)
+  controller.init()
+})

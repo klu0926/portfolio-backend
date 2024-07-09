@@ -320,9 +320,7 @@ class Controller {
     await this.model.getAllPosts()
 
     // get query postId and select that post, 
-    // if no query postId, use new post
     const queryPostId = this.query.get('postId')
-    this.renderPost(queryPostId)
 
     // render post select element
     this.view.renderPostSelect(this.model.posts, queryPostId)
@@ -336,6 +334,7 @@ class Controller {
     // get objects data (allow code below to run without blocking)
     this.model.fetchObjectsData().then(() => {
       this.toggleEditor() // enable editor
+      this.renderPost(queryPostId) // set quill content
     })
 
     // toolbar buttons (save / delete )
@@ -503,7 +502,7 @@ class Controller {
       const json = await response.json()
 
       if (!json.ok) throw new Error(json.error)
-      
+
       // set query and reload
       this.query.setAndGoTo('postId', 'new')
 
@@ -531,13 +530,15 @@ class Controller {
     }
   }
   renderPost(queryPostId) {
-    if (queryPostId === 'new') {
+    if (!queryPostId || queryPostId === 'new') {
       // this is a new post
+      console.log('render new post')
       this.view.renderInputValue(defaultPost)
       // set current post
       this.model.currentPost = null
     } else {
       // load old post
+      console.log('render old post')
       const post = this.model.posts.find(post => Number(post.id) === Number(queryPostId))
       this.view.renderInputValue(post)
       // set current post
@@ -560,7 +561,9 @@ class Controller {
   }
   postSelectHandler = (event) => {
     const postId = event.target.value
-    this.query.setAndGoTo('postId', postId)
+    this.query.set('postId', postId)
+    this.renderPost(postId)
+
   }
   // Quill ------------------------
   // this function is call within Quill, use arrow function to get current scope's 'this'
@@ -708,18 +711,33 @@ class Controller {
   }
 }
 
+
 const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
 
-
-
-
-//
+// quill content button
 const btn = document.createElement('button')
 btn.innerText = 'get delta'
 document.body.appendChild(btn)
 btn.onclick = () => {
   console.log(quillControl.getContents())
 }
+
+// quill content button
+const setQuillContentBtn = document.createElement('button')
+setQuillContentBtn.innerText = 'set quill content'
+document.body.appendChild(setQuillContentBtn)
+setQuillContentBtn.onclick = () => {
+  quillControl.setContents({
+    "ops": [
+      {
+        "insert": "Hello World\n"
+      }
+    ]
+  })
+}
+
+
+
 

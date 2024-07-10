@@ -1,6 +1,10 @@
 import sweetAlert from '../helper/sweetAlert.js'
 import quillControl from './quill.js'
+import createElementFromString from '../helper/createElementFromString.js'
 import '../helper/interact.js' // using interact
+// html template
+import metaInputTemp from '../../htmlTemplates/metaInput.js'
+
 
 const defaultPost = {
   title: 'New Post',
@@ -109,6 +113,10 @@ class Model {
     } else {
       return this.objects
     }
+  }
+  setCurrentPost(postId) {
+    const post = this.posts.find(post => Number(post.id) === Number(postId))
+    if (post) this.currentPost = post
   }
 }
 
@@ -300,6 +308,36 @@ class View {
     const editor = document.querySelector('#editor')
     editor.style.backgroundColor = colorHex
   }
+  renderMetaContainer = (meta) => {
+    const metaContainer = document.querySelector('#meta-container')
+    if (metaContainer) metaContainer.innerHTML = ''
+
+    // take meta array an create all the meta input
+    if (meta && Array.isArray(meta)) {
+      meta.forEach(m => {
+        this.addMetaInput(m.key, m.value)
+      })
+    }
+  }
+  addMetaInput(key, value) {
+    // create a new meta input
+    const metaContainer = document.querySelector('#meta-container')
+    const newMetaInput = createElementFromString(metaInputTemp)
+
+    // set key/value
+    if (key && value) {
+      const keyOption = newMetaInput.querySelector(`select option[value="${key}"]`)
+      if (keyOption) keyOption.selected = true
+      const valueInput = newMetaInput.querySelector('.meta-value')
+      if (valueInput) valueInput.value = value
+    }
+    metaContainer.appendChild(newMetaInput)
+
+    // delete button
+    const deleteBtn = newMetaInput.querySelector('.meta-delete')
+    if (deleteBtn) deleteBtn.onclick = (e) => e.target.parentElement.remove()
+  }
+
 }
 
 class Controller {
@@ -321,6 +359,9 @@ class Controller {
 
     // get query postId and select that post, 
     const queryPostId = this.query.get('postId')
+
+    // set current post
+    this.model.setCurrentPost(queryPostId)
 
     // render post select element
     this.view.renderPostSelect(this.model.posts, queryPostId)
@@ -351,6 +392,9 @@ class Controller {
 
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
+
+    // meta container
+    this.view.renderMetaContainer(this.model.currentPost.meta)
   }
   query = {
     searchParams: new URLSearchParams(window.location.search),
@@ -386,6 +430,16 @@ class Controller {
       data: this.quillControl.getContents(),
       background: document.querySelector('#bg-color-input').value
     }
+
+    // meta data
+    let meta = []
+    let metaInputs = document.querySelectorAll('.meta-input')
+    metaInputs.forEach(input => {
+      const key = input.querySelector('.meta-key').value
+      const value = input.querySelector('.meta-value').value
+      if (key && value) meta.push({ key, value })
+    })
+    data.meta = meta
     return data
   }
   buttonsHandlerSetup() {
@@ -417,6 +471,12 @@ class Controller {
       colorInput.addEventListener('input', () => {
         this.view.renderEditorBackground(colorInput.value)
       })
+    }
+
+    // add meta tag
+    const addMetaBtn = document.querySelector('#add-meta')
+    if (addMetaBtn) {
+      addMetaBtn.onclick = this.view.addMetaInput
     }
   }
   // create post (save)
@@ -534,6 +594,7 @@ class Controller {
       // this is a new post
       console.log('render new post')
       this.view.renderInputValue(defaultPost)
+      this.view.renderMetaContainer()
       // set current post
       this.model.currentPost = null
     } else {
@@ -541,6 +602,7 @@ class Controller {
       console.log('render old post')
       const post = this.model.posts.find(post => Number(post.id) === Number(queryPostId))
       this.view.renderInputValue(post)
+      this.view.renderMetaContainer(post.meta)
       // set current post
       this.model.currentPost = post
     }

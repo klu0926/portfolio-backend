@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     data: DataTypes.TEXT,
     description: DataTypes.STRING,
     backgroundHex: DataTypes.STRING,
-    order: DataTypes.INTEGER
+    order: DataTypes.INTEGER,
+    meta: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Post',

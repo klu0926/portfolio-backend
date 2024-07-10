@@ -11,7 +11,7 @@ const postController = {
       const { postId } = req.params
 
       // get one post or all post
-      const includesArray = [
+      const includeOption = [
         {
           model: Tag,
           as: 'tags',
@@ -29,7 +29,7 @@ const postController = {
           attributes: {
             exclude: ['updatedAt']
           },
-          include: includesArray,
+          include: includeOption,
         })
       } else {
         data = await Post.findAll({
@@ -37,7 +37,7 @@ const postController = {
             exclude: ['updatedAt']
           },
           order: [['order', 'ASC']], // sort with post.order
-          include: includesArray,
+          include: includeOption,
         })
       }
       if (!data) {
@@ -46,12 +46,14 @@ const postController = {
 
       // convert to json
       if (Array.isArray(data)) {
-        data = data.map(post => post.toJSON())
+        data = data.map(post => {
+          post.meta = JSON.parse(post.meta)
+          return post.toJSON()
+        })
       } else {
+        data.meta = JSON.parse(data.meta)
         data = data.toJSON()
       }
-
-      console.log('post:', data)
 
       // If find one post fail
       if (postId && !data) {
@@ -66,9 +68,11 @@ const postController = {
   postPost: async (req, res) => {
     try {
       // check body
-      const { title, data, cover, description, background } = req.body
+      const { title, data, cover, description, background, meta } = req.body
       const fields = { title, data, cover, description } // ignore tags for now
       const errorItems = []
+
+      console.log('meta:', meta)
 
       Object.keys(fields).forEach(key => {
         if (!fields[key]) errorItems.push(key)
@@ -88,7 +92,8 @@ const postController = {
         description,
         data: JSON.stringify(data),
         backgroundHex: background || '#FFFFFF',
-        order: maxOrder + 1
+        order: maxOrder + 1,
+        meta: JSON.stringify(meta) || null
       })
 
       // response
@@ -112,12 +117,16 @@ const postController = {
         throw new ResponseError(`Can not find post with id: ${id}`, 400)
       }
 
+      // meta
+      console.log('meta:', data.meta)
+
       // update post
       if (data.title) post.title = data.title
       if (data.cover) post.cover = data.cover
       if (data.description) post.description = data.description
       post.data = JSON.stringify(data.data) // allow empty data
       if (data.background) post.backgroundHex = data.background
+      if (data.meta) post.meta = JSON.stringify(data.meta)
       await post.save()
 
       // response

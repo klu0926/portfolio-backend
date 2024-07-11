@@ -264,6 +264,21 @@
   display: block;
 }
 
+.ql-snow.ql-toolbar button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.ql-snow .ql-picker-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
 /* everything with in editor */
 #editor-container.loading > * {
   pointer-events: none;

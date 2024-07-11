@@ -1,6 +1,7 @@
 import { VideoBlot, videoHandler } from "./quillBolts/VideoBlot";
 import { CustomImageBlot } from './quillBolts/imageBlot'
 import { textColorHandler } from './quillBolts/textColorHandler'
+import invertImageHandler from "./quillBolts/invertImageHandler";
 
 // register custom blots
 Quill.register(VideoBlot);
@@ -15,17 +16,25 @@ const toolbarOptions = {
     ['link', 'image', 'video'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
-    ['color', { 'background': [] }],  // dropdown with defaults from theme
-    //[{ 'font': [] }],
+    ['color',],
+    [{ 'background': [] }],
     [{ 'align': [] }],
     ['clean'],
+    ['invertImage']
   ],
   // override toolbar button handlers
   handlers: {
     'video': videoHandler,
-    'color': textColorHandler
+    'color': textColorHandler,
+    'invertImage': invertImageHandler
   },
 }
+
+// setup quill icons's element
+const icons = Quill.import('ui/icons') // get the Quill icons
+icons['invertImage'] = '<i class="fa-solid fa-image"></i>'
+
+
 
 // quill options
 const options = {
@@ -44,6 +53,12 @@ class QuillControl {
     this.editor = editor
     this.quill = quill
     this.toolbar = document.querySelector('.ql-toolbar')
+  }
+  getSelection(){
+    return this.quill.getSelection()
+  }
+  getLeaf(rangeIndex){
+    return this.quill.getLeaf(rangeIndex)
   }
   getContents() {
     return this.quill.getContents()
@@ -72,6 +87,9 @@ class QuillControl {
   // use to set ops attributes (imageBlot now use attributes to set image inline style)
   format(key, value) {
     quill.format(key, value);
+  }
+  removeFormat(key){
+    quill.removeFormat(key)
   }
   // key is the handler key, the toolbar's button name
   setToolbarHandler(key, handlerFunction) {

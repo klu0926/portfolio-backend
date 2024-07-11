@@ -29,7 +29,6 @@ class VideoBlot extends BlockEmbed {
 // blotName : internal name for blot within Quill (for reference)
 // tagName :  tell Quill which HTML element tag to use when render
 
-
 // Add a handler to override the video button
 function videoHandler() {
   const range = this.quill.getSelection();

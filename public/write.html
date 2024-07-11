@@ -70,7 +70,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
       </div>
     </nav>
     <!-- Create the editor container -->
-    <div class="container mt-5">
+    <div id="main-container" class="container mt-5">
       <div class="row d-flex justify-content-center">
         <div class="col-12 col-lg-9">
           <!--posts select-->
@@ -112,11 +112,18 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
             <label for="floatingTextarea2">Description</label>
           </div>
 
+          <!--tags-->
+          <div class="mt-4">
+            <p class="mb-1 text-secondary px-2">
+              <strong>Tags</strong> : Click to add or remove tag
+            </p>
+            <div id="tags-container"></div>
+          </div>
+
           <!--meta-->
           <div class="mt-4">
             <p class="mb-1 text-secondary px-2">
-              <strong>Meta</strong> : Provide additional information for this
-              project.
+              <strong>Meta</strong> : Add links or other meta data
             </p>
             <div id="meta-container"></div>
           </div>

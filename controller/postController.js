@@ -72,8 +72,6 @@ const postController = {
       const fields = { title, data, cover, description } // ignore tags for now
       const errorItems = []
 
-      console.log('meta:', meta)
-
       Object.keys(fields).forEach(key => {
         if (!fields[key]) errorItems.push(key)
       })
@@ -116,9 +114,6 @@ const postController = {
       if (!post) {
         throw new ResponseError(`Can not find post with id: ${id}`, 400)
       }
-
-      // meta
-      console.log('meta:', data.meta)
 
       // update post
       if (data.title) post.title = data.title

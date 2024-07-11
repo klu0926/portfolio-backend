@@ -1,6 +1,7 @@
 :root {
   /* bootstrap color */
   --primary: #007bff;
+  --primary-light: #4ea1fa;
   --secondary: #6c757d;
   --success: #28a745;
   --info: #17a2b8;

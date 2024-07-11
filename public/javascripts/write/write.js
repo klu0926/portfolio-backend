@@ -19,8 +19,11 @@ class Model {
     this.url = 'http://localhost:3000'
     this.objectUrl = this.url + '/objects'
     this.postUrl = this.url + '/posts'
+    this.tagUrl = this.url + '/tags'
+    this.postTagUrl = this.url + '/post-tag'
     this.objects = [] // s3 objects (file, folder)
     this.posts = []
+    this.tags = []
     this.currentPost = null
     this.prefix = '' // folder path
     this.map = null
@@ -46,7 +49,7 @@ class Model {
     try {
       const response = await fetch(this.postUrl)
       const json = await response.json()
-      if (!json.ok) throw new Error(json.message)
+      if (!json.ok) throw new Error(json.err)
       this.posts = json.data // {title, data: string}
 
       // data to json
@@ -104,6 +107,58 @@ class Model {
         "Content-Type": "application/json",
       }
     })
+  }
+  async fetchTags() {
+    try {
+      const response = await fetch(this.tagUrl)
+      const json = await response.json()
+      if (!json.ok) throw new Error(json.err)
+
+      // set tags
+      this.tags = json.data
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+  async updatePostTag(postId, tagId) {
+    try {
+      if (postId === undefined || tagId === undefined) {
+        throw new Error('Missing postId or tagId')
+      }
+      // find post
+      const post = this.posts.find(post => Number(post.id) === Number(postId))
+      if (!post) throw new Error(`Can not find post with id ${postId}`)
+
+      // try to find tag in this post
+      const tag = post.tags.find(tag => Number(tag.id) === Number(tagId))
+
+      // if posTag tag exist, delete postTag
+      if (tag) {
+        return fetch(this.postTagUrl, {
+          method: 'DELETE',
+          body: JSON.stringify({
+            postId, tagId
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          }
+        })
+      } else {
+        // if postTag doesn't exit, create postTag
+        return fetch(this.postTagUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            postId, tagId
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          }
+        })
+      }
+    } catch (err) {
+      alert(err.message)
+    }
+
   }
   getDataType(type) {
     if (type === 'file') {
@@ -310,7 +365,8 @@ class View {
   }
   renderMetaContainer = (meta) => {
     const metaContainer = document.querySelector('#meta-container')
-    if (metaContainer) metaContainer.innerHTML = ''
+    if (!metaContainer) return
+    metaContainer.innerHTML = ''
 
     // take meta array an create all the meta input
     if (meta && Array.isArray(meta)) {
@@ -338,6 +394,37 @@ class View {
     if (deleteBtn) deleteBtn.onclick = (e) => e.target.parentElement.remove()
   }
 
+  renderAllTags(currentPost, tags, callback) {
+    const tagsContainer = document.querySelector('#tags-container')
+    if (!tagsContainer) return
+    tagsContainer.innerHTML = ''
+
+    if (!currentPost) return
+    tags.forEach(tag => {
+      const button = document.createElement('button')
+      const image = document.createElement('img')
+      const span = document.createElement('span')
+      image.src = tag.icon
+      span.innerText = tag.name
+      button.appendChild(image)
+      button.appendChild(span)
+      button.onclick = callback
+
+      // dataset
+      button.dataset.tagId = tag.id
+
+      // style
+      image.classList.add('tag-icon')
+      span.classList.add('tag-span')
+      button.classList.add('tag-button')
+      tagsContainer.appendChild(button)
+
+      // set active if exist
+      const isActiveTag = currentPost.tags.find(postTag => Number(postTag.id) === Number(tag.id))
+
+      if (isActiveTag) button.classList.add('selected')
+    })
+  }
 }
 
 class Controller {
@@ -351,11 +438,14 @@ class Controller {
     this.init()
   }
   async init() {
+    console.log('init')
     // disable editor before data loaded
     this.toggleEditor()
 
     // get posts 
     await this.model.getAllPosts()
+    // get tags
+    await this.model.fetchTags()
 
     // get query postId and select that post, 
     const queryPostId = this.query.get('postId')
@@ -363,8 +453,11 @@ class Controller {
     // set current post
     this.model.setCurrentPost(queryPostId)
 
+    // render Post select
+    this.view.renderPostSelect(this.model.posts, this.model.currentPost?.id)
+
     // render post select element
-    this.view.renderPostSelect(this.model.posts, queryPostId)
+    this.renderPost(queryPostId) // set quill content
 
     // set up select handler
     const select = document.querySelector('#posts-select')
@@ -375,7 +468,6 @@ class Controller {
     // get objects data (allow code below to run without blocking)
     this.model.fetchObjectsData().then(() => {
       this.toggleEditor() // enable editor
-      this.renderPost(queryPostId) // set quill content
     })
 
     // toolbar buttons (save / delete )
@@ -393,8 +485,6 @@ class Controller {
     // set up  sweetAlert did render handler
     this.sweetAlert.didRenderHandlers['SweetImageSelectionDidRender'] = this.SweetImageSelectionDidRender
 
-    // meta container
-    this.view.renderMetaContainer(this.model.currentPost.meta)
   }
   query = {
     searchParams: new URLSearchParams(window.location.search),
@@ -488,14 +578,18 @@ class Controller {
     try {
       const response = await this.model.postPost(this.getInputData())
       const json = await response.json()
-      if (!json.ok) throw new Error(json.message)
+      if (!json.ok) throw new Error(json.err)
 
-      // render post select
+      // get all posts
       await this.model.getAllPosts()
-      this.view.renderPostSelect(this.model.posts)
-
       // set current post
       this.model.currentPost = this.model.posts[this.model.posts.length - 1]
+
+      // render post
+      this.renderPost(this.model.currentPost.id)
+
+      // render post select
+      this.view.renderPostSelect(this.model.posts, this.model.currentPost.id)
 
       // select the newest post option
       const options = this.view.postsSelect.querySelectorAll('option')
@@ -535,11 +629,11 @@ class Controller {
       // put post
       const response = await this.model.putPost(id, this.getInputData())
       const json = await response.json()
-      if (!json.ok) throw new Error(json.message)
+      if (!json.ok) throw new Error(json.err)
 
       // render post select
       await this.model.getAllPosts()
-      this.view.renderPostSelect(this.model.posts, this.model.currentPost.id)
+      this.renderPost(id)
 
       // notify saved
       this.view.notify('Saved')
@@ -562,6 +656,8 @@ class Controller {
       const json = await response.json()
 
       if (!json.ok) throw new Error(json.error)
+
+
 
       // set query and reload
       this.query.setAndGoTo('postId', 'new')
@@ -594,17 +690,17 @@ class Controller {
       // this is a new post
       console.log('render new post')
       this.view.renderInputValue(defaultPost)
-      this.view.renderMetaContainer()
-      // set current post
       this.model.currentPost = null
+      this.view.renderMetaContainer()
+      this.view.renderAllTags()
     } else {
       // load old post
       console.log('render old post')
       const post = this.model.posts.find(post => Number(post.id) === Number(queryPostId))
+      this.model.currentPost = post
       this.view.renderInputValue(post)
       this.view.renderMetaContainer(post.meta)
-      // set current post
-      this.model.currentPost = post
+      this.view.renderAllTags(post, this.model.tags, this.tagButtonHandler)
     }
 
     // button handler setup
@@ -625,7 +721,6 @@ class Controller {
     const postId = event.target.value
     this.query.set('postId', postId)
     this.renderPost(postId)
-
   }
   // Quill ------------------------
   // this function is call within Quill, use arrow function to get current scope's 'this'
@@ -771,6 +866,28 @@ class Controller {
       }
     }
   }
+  tagButtonHandler = async (e) => {
+    try {
+      let btn = e.target
+      if (btn.className !== 'tag-button') btn = btn.parentElement
+      const tagId = btn.dataset.tagId
+      const response = await this.model.updatePostTag(this.model.currentPost.id, tagId)
+      const json = await response.json()
+      if (!json.ok) throw new Error(json.err)
+
+      // fetch posts again
+      await this.model.getAllPosts()
+
+      // update current post
+      this.model.setCurrentPost(this.model.currentPost.id)
+
+      // render all tags
+      this.view.renderAllTags(this.model.currentPost, this.model.tags, this.tagButtonHandler)
+    } catch (err) {
+      sweetAlert.error(`Tag Post: ${err.message}`)
+    }
+
+  }
 }
 
 
@@ -778,27 +895,21 @@ const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
 
+
 // quill content button
-const btn = document.createElement('button')
-btn.innerText = 'get delta'
-document.body.appendChild(btn)
-btn.onclick = () => {
+const quillContentButton = document.createElement('button')
+quillContentButton.innerText = 'log delta'
+quillContentButton.classList.add('btn', 'btn-outline-secondary')
+quillContentButton.onclick = () => {
   console.log(quillControl.getContents())
 }
 
-// quill content button
-const setQuillContentBtn = document.createElement('button')
-setQuillContentBtn.innerText = 'set quill content'
-document.body.appendChild(setQuillContentBtn)
-setQuillContentBtn.onclick = () => {
-  quillControl.setContents({
-    "ops": [
-      {
-        "insert": "Hello World\n"
-      }
-    ]
-  })
-}
+// test buttons
+const testButtonsContainer = document.createElement('div')
+testButtonsContainer.classList.add('d-flex', 'justify-content-center', 'my-4', 'gap-4')
+testButtonsContainer.appendChild(quillContentButton)
+document.querySelector('#main-container').appendChild(testButtonsContainer)
+
 
 
 

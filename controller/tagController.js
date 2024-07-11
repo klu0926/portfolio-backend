@@ -65,7 +65,6 @@ const tagController = {
   },
   createTag: async (req, res) => {
     try {
-      // name
       const { name, icon } = req.body
       if (!name.trim()) {
         throw new ResponseError('Missing tag name', 400)
@@ -75,8 +74,6 @@ const tagController = {
       const oldTag = await Tag.findOne({
         where: { name }, raw: true
       })
-
-      console.log('oldTag:', oldTag)
       if (oldTag) {
         throw new ResponseError(`Tag: ${oldTag.name} already exist`, 400)
       }

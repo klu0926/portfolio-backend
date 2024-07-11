@@ -10,17 +10,8 @@ async function createPostsFromFile(posts) {
 
     // create posts 
     const postsCreatePromises = posts.map(post => {
-      const { title, cover, description, tags, data, backgroundHex, order } = post
       // Post.create create promise, then return this promise 
-      return Post.create({
-        title,
-        cover,
-        description,
-        tags,
-        data,
-        order,
-        backgroundHex: backgroundHex || '#FFFFFF'
-      })
+      return Post.create(post)
     })
 
     await Promise.all(postsCreatePromises)

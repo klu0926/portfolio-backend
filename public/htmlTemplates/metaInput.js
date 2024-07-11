@@ -1,5 +1,5 @@
 const metaInput = `
-<div class="meta-input input-group mb-3">
+<div class="meta-input input-group">
   <span class="input-group-text">key</span>
   <select class="form-select meta-key">
     <option>Choose...</option>

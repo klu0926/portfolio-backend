@@ -76,6 +76,69 @@
   background-color: var(--gray-dark);
 }
 
+/* meta */
+#meta-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid var(--gray);
+  border-radius: 5px;
+  min-height: 20px;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.meta-input {
+  border-radius: 10px;
+}
+
+.meta-input:hover {
+  box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* tags */
+#tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  gap: 5px;
+  border: 1px solid var(--gray);
+  border-radius: 5px;
+  min-height: 20px;
+  margin-bottom: 10px;
+}
+
+.tag-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.tag-span {
+}
+
+.tag-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gray);
+  border-radius: 5px;
+  margin: 5px;
+  gap: 5px;
+  padding: 2px 5px;
+  background-color: white;
+}
+
+.tag-button:hover {
+  border: 2px solid var(--gray-dark);
+  box-shadow: 2px 4px 4.5px 1.5px rgba(0, 0, 0, 0.1);
+}
+
+.tag-button.selected {
+  border: 2px solid var(--primary);
+  background-color: rgb(229, 243, 253);
+  box-shadow: 2px 4px 4.5px 1.5px rgba(0, 0, 0, 0.1);
+}
+
 /* sweet alert image select */
 #images-container-div {
   width: 100%;
@@ -241,7 +304,7 @@
 }
 
 .ql-editor .ql-size-large {
-  font-size: 2rem !important;
+  font-size: 1.65rem !important;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }

@@ -5,7 +5,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const otherList = [
       'blender', 'maya', 'photoshop', 'premiere',
-      'unity', 'unreal', 'wordpress'
+      'unity', 'unreal', 'spine', 'wordpress'
     ]
 
     const codingList = [

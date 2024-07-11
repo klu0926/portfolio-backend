@@ -19,7 +19,9 @@ const postController = {
           through: {
             model: PostTag,
             attributes: []
-          }
+          },
+          order: [['name', 'ASC']],
+
         }
       ]
 
@@ -59,6 +61,16 @@ const postController = {
       if (postId && !data) {
         throw new ResponseError(`Fail to get post id: ${postId}`, 400)
       }
+
+      // sort tags
+      if (postId && data) {
+        data.tags.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (data) {
+        data.forEach(post => {
+          post.tags.sort((a, b) => a.name.localeCompare(b.name));
+        });
+      }
+
       // response
       res.status(200).json(responseJSON(true, 'GET', data, 'Successfully get post'))
     } catch (err) {

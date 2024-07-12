@@ -191,7 +191,7 @@ class View {
         previewCol.appendChild(image)
 
         // click image to show image
-        image.onclick = () => sweetAlert.image(object.url, '1000px')
+        image.onclick = () => sweetAlert.image(object.url, '100%')
       }
       row.appendChild(previewCol)
 

@@ -1,11 +1,17 @@
 .swal-preview-popup {
-  width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 700px;
   max-width: 90%;
+  max-height: 500px;
   padding: 10px;
+  overflow: hidden;
 }
 
-
-
 .swal-preview-popup img {
-  margin: 10px 0px;
+  object-fit: contain;
+  justify-self: center;
+  max-height: 450px;
+  margin: 0;
 }

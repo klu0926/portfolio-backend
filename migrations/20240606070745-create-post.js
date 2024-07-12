@@ -9,6 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      group: {
+        type: Sequelize.STRING,
+        defaultValue: 'project'
+      },
       title: {
         type: Sequelize.STRING
       },

@@ -8,6 +8,7 @@ import metaInputTemp from '../../htmlTemplates/metaInput.js'
 
 const defaultPost = {
   title: 'New Post',
+  group: '',
   cover: '',
   description: '',
   data: {},
@@ -216,10 +217,11 @@ class View {
   }
   renderInputValue = (postObject) => {
     document.querySelector('#title-input').value = postObject.title
+    document.querySelector('#group-input').value = postObject.group
     document.querySelector('#cover-input').value = postObject.cover
     document.querySelector('#description-input').value = postObject.description
-    quillControl.setContents(postObject.data)
     document.querySelector('#bg-color-input').value = postObject.backgroundHex
+    quillControl.setContents(postObject.data)
   }
   // render the images in sweet alert's window (sweetImagesSelect)
   renderImageSelection = (files, prefix = '') => {
@@ -425,6 +427,24 @@ class View {
       if (isActiveTag) button.classList.add('selected')
     })
   }
+  renderGroupDataList(posts) {
+    // render group datalist's option base on current posts's group list
+    const dataList = document.querySelector('#group-option')
+    if (!dataList) return
+    dataList.innerHTML = ''
+
+    const groups = []
+    posts.forEach(post => {
+      const group = groups.find(group => group === post.group)
+      if (!group) groups.push(post.group)
+    })
+
+    groups.forEach(group => {
+      const option = document.createElement('option')
+      option.value = group
+      dataList.appendChild(option)
+    })
+  }
 }
 
 class Controller {
@@ -515,6 +535,7 @@ class Controller {
   getInputData() {
     const data = {
       title: document.querySelector('#title-input').value,
+      group: document.querySelector('#group-input').value,
       cover: document.querySelector('#cover-input').value,
       description: document.querySelector('#description-input').value,
       data: this.quillControl.getContents(),
@@ -606,7 +627,7 @@ class Controller {
       const currentPost = this.model.currentPost
       this.query.set('postId', currentPost.id)
     } catch (err) {
-      alert(err.message || err)
+      sweetAlert.error('Fail to create', err.message)
     } finally {
       // button reset
       resetButton()
@@ -640,7 +661,7 @@ class Controller {
       this.view.toolbarButtonsRender(this.model.currentPost)
 
     } catch (err) {
-      alert(err.message || err)
+      sweetAlert.error('Fail to save', err.message)
     } finally {
       resetButton()
     }
@@ -664,7 +685,7 @@ class Controller {
 
 
     } catch (err) {
-      alert(err.message || err)
+      sweetAlert.error('Fail to delete', err.message)
     }
   }
   createAndSaveMixHandler = (e) => {
@@ -702,6 +723,9 @@ class Controller {
       this.view.renderMetaContainer(post.meta)
       this.view.renderAllTags(post, this.model.tags, this.tagButtonHandler)
     }
+
+    // do for both new or old post
+    this.view.renderGroupDataList(this.model.posts)
 
     // button handler setup
     this.view.toolbarButtonsRender(this.model.currentPost)
@@ -807,7 +831,8 @@ class Controller {
         uploadBtn.innerText = 'Upload'
         uploadBtn.classList.remove('loading-icon')
       } catch (err) {
-        alert(err)
+        sweetAlert.error('Fail to upload', err.message)
+
       }
     }
   }

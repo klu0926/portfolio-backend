@@ -80,15 +80,15 @@ const postController = {
   postPost: async (req, res) => {
     try {
       // check body
-      const { title, data, cover, description, background, meta } = req.body
-      const fields = { title, data, cover, description } // ignore tags for now
+      const { title, group, data, cover, description, background, meta } = req.body
+      const requireFields = { title, group, data, cover, description }
       const errorItems = []
 
-      Object.keys(fields).forEach(key => {
-        if (!fields[key]) errorItems.push(key)
+      Object.keys(requireFields).forEach(key => {
+        if (!requireFields[key]) errorItems.push(key)
       })
       if (errorItems.length !== 0) {
-        throw new ResponseError(`Missing fields: ${errorItems.join(',')}`, 400)
+        throw new ResponseError(`Missing required fields: ${errorItems.join(',')}`, 400)
       }
 
       // find max order
@@ -97,6 +97,7 @@ const postController = {
 
       // create post
       const post = await Post.create({
+        group,
         title,
         cover,
         description,
@@ -115,25 +116,41 @@ const postController = {
   putPost: async (req, res) => {
     try {
       // check body
-      const { id, data } = req.body
+      const postId = req.body?.id
+      const bodyData = req.body?.data
 
-      if (!id) {
+      if (!postId) {
         throw new ResponseError('Missing put post id', 400)
+      }
+      if (!bodyData) {
+        throw new ResponseError('Missing put post body data', 400)
+      }
+
+      // check require fields
+      const { title, group, data, cover, description, background, meta } = bodyData
+      const requireFields = { title, group, data, cover, description }
+      const errorItems = []
+      Object.keys(requireFields).forEach(key => {
+        if (!requireFields[key]) errorItems.push(key)
+      })
+      if (errorItems.length !== 0) {
+        throw new ResponseError(`Missing required fields: ${errorItems.join(',')}`, 400)
       }
 
       // find post
-      const post = await Post.findOne({ where: { id } })
+      const post = await Post.findOne({ where: { id: postId } })
       if (!post) {
-        throw new ResponseError(`Can not find post with id: ${id}`, 400)
+        throw new ResponseError(`Can not find post with id: ${postId}`, 400)
       }
 
       // update post
-      if (data.title) post.title = data.title
-      if (data.cover) post.cover = data.cover
-      if (data.description) post.description = data.description
-      post.data = JSON.stringify(data.data) // allow empty data
-      if (data.background) post.backgroundHex = data.background
-      if (data.meta) post.meta = JSON.stringify(data.meta)
+      if (title) post.title = title
+      if (group) post.group = group
+      if (cover) post.cover = cover
+      if (description) post.description = description
+      post.data = JSON.stringify(data) // allow empty data
+      if (background) post.backgroundHex = background
+      if (meta) post.meta = JSON.stringify(meta)
       await post.save()
 
       // response

@@ -2,7 +2,20 @@
   height: 40px;
 }
 
-#table-body .delete {
+/* prevent when loading button become flat */
+#table-body button.delete {
   height: 40px;
+  width: 50px;
+}
+
+.bucket-preview {
   width: 100px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  border-radius: 4px;
+}
+
+.bucket-preview:hover {
+  transform: scale(1.3);
 }

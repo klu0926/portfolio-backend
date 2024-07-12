@@ -1,3 +1,5 @@
+import sweetAlert from "../helper/sweetAlert"
+
 // Model
 class Model {
   constructor() {
@@ -156,7 +158,14 @@ class View {
       keySpan.innerHTML += ' '
       keySpan.appendChild(keyLink)
       keyCol.appendChild(keySpan)
-      keyLink.innerText = object.key
+
+      // cut the text to the last part
+      const keyArray = object.key.split('/')
+      if (keyArray[keyArray.length - 1] === '') {
+        keyLink.innerText = keyArray[keyArray.length - 2]
+      } else {
+        keyLink.innerText = keyArray[keyArray.length - 1]
+      }
 
       if (object.type === 'file') {
         keyLink.target = '_blank'
@@ -169,14 +178,22 @@ class View {
           view.controller.changeCurrentPrefix(object.key)
         }
       }
-
       row.appendChild(keyCol)
 
 
-      // type
-      const typeCol = document.createElement('td')
-      typeCol.innerText = object.type
-      row.appendChild(typeCol)
+      // preview image
+      const previewCol = document.createElement('td')
+      if (object.type === 'file' && object.url) {
+        // show image preview
+        const image = document.createElement('img')
+        image.src = object.url
+        image.classList.add('bucket-preview')
+        previewCol.appendChild(image)
+
+        // click image to show image
+        image.onclick = () => sweetAlert.image(object.url, '1000px')
+      }
+      row.appendChild(previewCol)
 
       // Size
       const sizeCol = document.createElement('td')
@@ -189,7 +206,7 @@ class View {
       const deleteCol = document.createElement('td')
       if (object.type === 'file') {
         const deleteButton = document.createElement('button')
-        deleteButton.innerText = 'Delete'
+        deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>'
         deleteButton.classList.add('btn', 'btn-danger', 'delete')
         deleteButton.onclick = (e) => {
           this.controller.deleteObjectButtonFnc(e.target, object.key)
@@ -300,20 +317,21 @@ class Controller {
   }
   async deleteObjectButtonFnc(button, Key) {
     try {
-      const isConfirm = confirm(`Do you want to delete ${Key}?`)
-      if (isConfirm) {
-        // show loading icon
-        const text = button.innerText
-        button.innerText = ''
-        button.classList.add('loading-icon')
+      const result = await sweetAlert.confirm('Delete File', `Are you sure you want to delete ${Key}`)
+      if (!result.isConfirmed) return
 
-        // DELETE
-        const response = await this.model.deleteFile(Key)
+      // show loading icon
+      const text = button.innerText
+      button.innerText = ''
+      button.classList.add('loading-icon')
 
-        // finished
-        button.innerText = text
-        this.fetchAndRender()
-      }
+      // DELETE
+      const response = await this.model.deleteFile(Key)
+
+      // finished
+      button.innerText = text
+      this.fetchAndRender()
+
     } catch (err) {
       alert(err)
       location.reload()

@@ -95,11 +95,14 @@ const sweetAlert = {
   image: (url, size) => {
     Swal.fire({
       showConfirmButton: false,
-      showCancelButton: true,
+      showCancelButton: false,
       cancelButtonText: 'Close',
       imageWidth: size || '320px',
       background: `#fff`,
       imageUrl: url,
+      customClass: {
+        popup: 'swal-preview-popup',
+      }
     })
   },
   loading: (loadTitle) => {

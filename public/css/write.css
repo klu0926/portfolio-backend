@@ -1,3 +1,25 @@
+/* page loading */
+#page-loading-cover {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  position: fixed;
+  padding: 0;
+  margin: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 20;
+  color: white;
+}
+
+#page-loading-cover .loading-icon::after {
+  width: 50px;
+  height: 50px;
+}
+
 #title-input {
   height: 4.5rem;
 }
@@ -270,14 +292,11 @@
   align-items: center;
 }
 
-
 .ql-snow .ql-picker-label {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
-
 
 /* everything with in editor */
 #editor-container.loading > * {

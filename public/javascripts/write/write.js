@@ -184,12 +184,14 @@ class View {
     this.editorContainer = document.querySelector('#editor-container')
     this.notifyTimeoutId = null
   }
-  setEditorLoading(isLoading) {
+  setPageLoading(isLoading) {
+    const loadingCover = document.querySelector('#page-loading-cover')
+    if (!loadingCover) return
+
     if (isLoading) {
-      this.editorContainer.classList.remove('loading')
-      this.editorContainer.classList.add('loading')
+      loadingCover.style.display = 'flex'
     } else {
-      this.editorContainer.classList.remove('loading')
+      loadingCover.style.display = 'none'
     }
   }
   renderPostSelect = (posts, currentPostId) => {
@@ -216,12 +218,13 @@ class View {
     }
   }
   renderInputValue = (postObject) => {
+    // this needs to comes after quill editor is enable
+    quillControl.setContents(postObject.data)
     document.querySelector('#title-input').value = postObject.title
     document.querySelector('#group-input').value = postObject.group
     document.querySelector('#cover-input').value = postObject.cover
     document.querySelector('#description-input').value = postObject.description
     document.querySelector('#bg-color-input').value = postObject.backgroundHex
-    quillControl.setContents(postObject.data)
   }
   // render the images in sweet alert's window (sweetImagesSelect)
   renderImageSelection = (files, prefix = '') => {
@@ -455,6 +458,7 @@ class Controller {
     this.sweetAlert = sweetAlert
     this.delta = null // quill's editor data
     this.titleInput = document.querySelector('#title-input')
+    this.isSaveSafe = false
     this.init()
   }
   async init() {
@@ -462,10 +466,13 @@ class Controller {
     // disable editor before data loaded
     this.toggleEditor()
 
-    // get posts 
-    await this.model.getAllPosts()
-    // get tags
-    await this.model.fetchTags()
+    // fetch all data
+    await this.model.getAllPosts() // posts
+    await this.model.fetchTags() // tags
+    await this.model.fetchObjectsData() // s3 object
+
+    // enable editor
+    this.toggleEditor()
 
     // get query postId and select that post, 
     const queryPostId = this.query.get('postId')
@@ -485,10 +492,7 @@ class Controller {
       this.postSelectHandler(e)
     })
 
-    // get objects data (allow code below to run without blocking)
-    this.model.fetchObjectsData().then(() => {
-      this.toggleEditor() // enable editor
-    })
+
 
     // toolbar buttons (save / delete )
     this.view.toolbarButtonsRender(this.model.currentPost)
@@ -595,7 +599,6 @@ class Controller {
     // loading button
     const saveButton = document.querySelector('#save')
     const resetButton = this.view.buttonLoading(saveButton)
-
     try {
       const response = await this.model.postPost(this.getInputData())
       const json = await response.json()
@@ -640,6 +643,8 @@ class Controller {
     const resetButton = this.view.buttonLoading(saveButton)
 
     try {
+      if (!this.isSaveSafe) throw new Error('Unable to save at the moment')
+
       // Get current post
       const currentPost = this.model.currentPost
       if (!currentPost) return
@@ -678,8 +683,6 @@ class Controller {
 
       if (!json.ok) throw new Error(json.error)
 
-
-
       // set query and reload
       this.query.setAndGoTo('postId', 'new')
 
@@ -699,11 +702,16 @@ class Controller {
   }
   toggleEditor() {
     if (this.quillControl.isEnable()) {
+      // off
       this.quillControl.disable()
-      this.view.setEditorLoading(true)
+      this.view.setPageLoading(true)
+      this.isSaveSafe = false
     } else {
+      // on
       this.quillControl.enable()
-      this.view.setEditorLoading(false)
+      this.view.setPageLoading(false)
+      this.isSaveSafe = true
+
     }
   }
   renderPost(queryPostId) {
@@ -909,17 +917,15 @@ class Controller {
       // render all tags
       this.view.renderAllTags(this.model.currentPost, this.model.tags, this.tagButtonHandler)
     } catch (err) {
-      sweetAlert.error(`Tag Post: ${err.message}`)
+      sweetAlert.error('Fail to Tag', err.message)
     }
 
   }
 }
 
-
 const model = new Model()
 const view = new View(quillControl)
 const controller = new Controller(model, view, quillControl, sweetAlert)
-
 
 // quill content button
 const quillContentButton = document.createElement('button')

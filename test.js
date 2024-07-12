@@ -1,29 +1,22 @@
-const objects = [
+const array = [
   {
-    group: 'apple'
+    postId: 5,
+    tagId: 1,
+    createdAt: '2024-07-12T07:49:13.000Z',
+    updatedAt: '2024-07-12T07:49:13.000Z'
   },
   {
-    group: 'orange'
+    postId: 5,
+    tagId: 2,
+    createdAt: '2024-07-12T07:49:13.000Z',
+    updatedAt: '2024-07-12T07:49:13.000Z'
   },
-  {
-    group: 'girls'
-  },
-  {
-    group: 'apple'
-  },
-  {
-    group: 'apple'
-  }
 ]
 
 
-
-const groups = []
-
-objects.forEach(obj => {
-  const group = groups.find(group => group === obj.group)
-  if (!group) groups.push(obj.group)
+array.forEach(obj => {
+  delete obj.createdAt
+  delete obj.updatedAt
 })
 
-
-console.log(groups)
+console.log(array)

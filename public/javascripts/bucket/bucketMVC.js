@@ -322,7 +322,7 @@ class Controller {
 
       // show loading icon
       const text = button.innerText
-      button.innerText = ''
+      button.innerHTML = ''
       button.classList.add('loading-icon')
 
       // DELETE
@@ -359,7 +359,6 @@ class Controller {
       const json = await response.json()
 
       if (!json.ok) throw new Error(json.error)
-      console.log('POST JSON:', json)
       this.view.resetUploadForm()
       this.fetchAndRender()
 

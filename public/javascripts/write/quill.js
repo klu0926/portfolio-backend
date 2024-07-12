@@ -54,10 +54,10 @@ class QuillControl {
     this.quill = quill
     this.toolbar = document.querySelector('.ql-toolbar')
   }
-  getSelection(){
+  getSelection() {
     return this.quill.getSelection()
   }
-  getLeaf(rangeIndex){
+  getLeaf(rangeIndex) {
     return this.quill.getLeaf(rangeIndex)
   }
   getContents() {
@@ -88,7 +88,7 @@ class QuillControl {
   format(key, value) {
     quill.format(key, value);
   }
-  removeFormat(key){
+  removeFormat(key) {
     quill.removeFormat(key)
   }
   // key is the handler key, the toolbar's button name

@@ -4,8 +4,14 @@
 
 /* prevent when loading button become flat */
 #table-body button.delete {
+  padding: 5px;
   height: 40px;
-  width: 50px;
+  width: 40px;
+}
+
+#table-body button.delete i {
+  height: 20px;
+  width: 20px;
 }
 
 .bucket-preview {

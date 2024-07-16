@@ -358,12 +358,13 @@ class Controller {
       const response = await this.model.postFile(form)
       const json = await response.json()
 
-      if (!json.ok) throw new Error(json.error)
+
+      if (!json.ok) throw new Error(json.err)
       this.view.resetUploadForm()
       this.fetchAndRender()
 
     } catch (err) {
-      alert(err)
+      await sweetAlert.error('Fail To Upload', err)
       location.reload()
     }
   }

@@ -17,7 +17,7 @@ router.get('/', (req, res) => {
 // get object
 router.get('/objects', objectsController.getObjects)
 // post object
-router.post('/objects', upload.single('Image'), tinyfy, objectsController.postObject)
+router.post('/objects', upload, tinyfy, objectsController.postObject)
 // Delete object
 router.delete('/objects', objectsController.deleteObject)
 

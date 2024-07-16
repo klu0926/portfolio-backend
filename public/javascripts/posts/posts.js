@@ -187,7 +187,7 @@ class Controller {
         const postId = e.target.dataset.id
         const response = await this.model.deletePost(postId)
         const json = await response.json()
-        if (!json.ok) throw new Error(json.error)
+        if (!json.ok) throw new Error(json.err)
         await sweetAlert.success('Post Deleted')
         window.location.reload()
       }

@@ -681,7 +681,7 @@ class Controller {
       const response = await this.model.deletePost(postId)
       const json = await response.json()
 
-      if (!json.ok) throw new Error(json.error)
+      if (!json.ok) throw new Error(json.err)
 
       // set query and reload
       this.query.setAndGoTo('postId', 'new')
@@ -829,7 +829,7 @@ class Controller {
         // post file
         const response = await this.model.postFile(form)
         const json = await response.json()
-        if (!json.ok) throw new Error(json.error)
+        if (!json.ok) throw new Error(json.err)
 
         // render images
         await this.model.fetchObjectsData()
@@ -839,8 +839,7 @@ class Controller {
         uploadBtn.innerText = 'Upload'
         uploadBtn.classList.remove('loading-icon')
       } catch (err) {
-        sweetAlert.error('Fail to upload', err.message)
-
+        sweetAlert.error('Fail to upload', err)
       }
     }
   }

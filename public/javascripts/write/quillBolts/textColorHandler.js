@@ -1,42 +1,48 @@
-function textColorHandler() {
-  const quill = this.quill
+import quillControl from "../quill"
+
+function textColorHandler(e) {
+  const quill = quillControl.quill
   // parent
-  const colorPicker = document.querySelector('.ql-color-picker')
+  const colorPickerButton = document.querySelector('.ql-color-picker')
 
-  // children
-  let pickerSpan = document.querySelector('.text-color-picker')
+  // find if color div exist
+  let colorPickerDiv = document.querySelector('.text-color-picker')
 
-  if (!pickerSpan) {
+  // if color div doesn't exist, create one
+  if (!colorPickerDiv) {
     // create span
-    pickerSpan = document.createElement('span')
-    pickerSpan.className = 'text-color-picker'
-    pickerSpan.innerHTML = `
+    colorPickerDiv = document.createElement('span')
+    colorPickerDiv.className = 'text-color-picker'
+    colorPickerDiv.innerHTML = `
     <div id='text-color-picker' class='color-picker' >
       <input id='text-color-input' class='text-color-input' type='color'>
-      <button id='text-color-btn' class='ok-btn' type="button">OK</button>
     </div>
   `
-    colorPicker.appendChild(pickerSpan)
+    colorPickerButton.appendChild(colorPickerDiv)
+
+    // handle color input
+    const colorInput = document.querySelector('#text-color-input')
+    if (colorInput) {
+      colorInput.addEventListener('input', (e) => {
+        quill.format('color', e.target.value)
+        quillControl.currentColor = e.target.value
+      })
+    }
   }
 
   function toggle(mode) {
     if (mode === 'on') {
-      pickerSpan.style.display = 'inline'
+      colorPickerDiv.style.display = 'inline'
     }
     if (mode === 'off') {
-      pickerSpan.style.display = 'none'
+      colorPickerDiv.style.display = 'none'
     }
-  }
-
-  function textColorBtnHandler() {
-    const colorInput = document.querySelector('#text-color-input')
-    quill.format('color', colorInput.value)
   }
 
   // show span
   toggle('on')
 
-  // handler
+  // click off item to toggle off
   document.addEventListener('click', (e) => {
     const target = e.target
     if (target.classList.contains('ql-color')) return
@@ -45,14 +51,12 @@ function textColorHandler() {
     if (target.parentElement.classList.contains('ql-color')) return
     toggle('off')
   })
+}
 
-  // ok btn
-  const textColorBtn = document.querySelector('#text-color-btn')
-  if (textColorBtn) {
-    textColorBtn.onclick = () => {
-      textColorBtnHandler()
-    }
+const typeCurrentColor = () => {
+  if (quillControl?.currentColor) {
+    quillControl.format('color', quillControl.currentColor)
   }
 }
 
-export { textColorHandler }
+export { textColorHandler, typeCurrentColor }

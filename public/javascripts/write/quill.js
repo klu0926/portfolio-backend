@@ -1,6 +1,6 @@
 import { VideoBlot, videoHandler } from "./quillBolts/VideoBlot";
 import { CustomImageBlot } from './quillBolts/imageBlot'
-import { textColorHandler } from './quillBolts/textColorHandler'
+import { textColorHandler, typeCurrentColor } from './quillBolts/textColorHandler'
 import invertImageHandler from "./quillBolts/invertImageHandler";
 
 // register custom blots
@@ -33,7 +33,6 @@ const toolbarOptions = {
 // setup quill icons's element
 const icons = Quill.import('ui/icons') // get the Quill icons
 icons['invertImage'] = '<i class="fa-solid fa-image"></i>'
-
 
 
 // quill options
@@ -105,6 +104,10 @@ class QuillControl {
     toolbar.addHandler(key, guardFunction);
   }
 }
+
+// listener
+// Always type with current text color
+document.onkeydown = typeCurrentColor
 
 const quillControl = new QuillControl(editor, quill)
 export default quillControl

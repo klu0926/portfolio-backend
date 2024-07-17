@@ -251,14 +251,23 @@
   font-size: 1.4rem;
 }
 
+/* text color button */
+.ql-color {
+  position: relative;
+}
+
+/* text color color select span */
+/* this is append to background color button
+    for some reason append on text color button
+    cause the color input to not show color wheel
+    */
 .ql-toolbar .color-picker {
   position: absolute;
-  left: -30px;
+  left: -35px;
   top: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 130px;
   height: auto;
   background-color: white;
   box-shadow: 1px 2px 5px 2px rgba(0, 0, 0, 0.2);
@@ -267,23 +276,10 @@
   z-index: 15;
 }
 
-.ql-toolbar .color-picker .ok-btn {
-  background-color: var(--primary);
-  border-radius: 3px;
-  padding: 2px 15px;
-  width: 50px;
-  color: white;
-  z-index: 16;
-}
-
-.ql-toolbar .color-picker .ok-btn:hover {
-  filter: brightness(1.2);
-  color: white;
-}
-
 .ql-toolbar .color-picker .text-color-input {
   cursor: pointer;
   display: block;
+  z-index: 20;
 }
 
 .ql-snow.ql-toolbar button {

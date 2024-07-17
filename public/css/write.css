@@ -282,6 +282,19 @@
   z-index: 20;
 }
 
+#text-color-ok {
+  background-color: var(--primary);
+  color: white;
+  padding: 5px 10px;
+  width: 50px;
+  font-size: 0.8rem;
+  border-radius: 3px;
+}
+
+#text-color-ok:hover {
+  background-color: var(--primary-light);
+}
+
 .ql-snow.ql-toolbar button {
   display: flex;
   justify-content: center;

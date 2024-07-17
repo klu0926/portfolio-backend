@@ -16,6 +16,7 @@ function textColorHandler(e) {
     colorPickerDiv.innerHTML = `
     <div id='text-color-picker' class='color-picker' >
       <input id='text-color-input' class='text-color-input' type='color'>
+      <button id='text-color-ok' class='ok-button'>OK</button>
     </div>
   `
     colorPickerButton.appendChild(colorPickerDiv)
@@ -28,6 +29,18 @@ function textColorHandler(e) {
         quillControl.currentColor = e.target.value
       })
     }
+
+    // handle ok button click 
+    const okButtonHandler = () => {
+      if (colorInput.value) {
+        quill.format('color', colorInput.value)
+      }
+    }
+    const okButton = document.querySelector('#text-color-ok')
+    if (okButton) {
+      okButton.addEventListener('click', okButtonHandler)
+    }
+
   }
 
   function toggle(mode) {
@@ -53,10 +66,24 @@ function textColorHandler(e) {
   })
 }
 
-const typeCurrentColor = () => {
-  if (quillControl?.currentColor) {
-    quillControl.format('color', quillControl.currentColor)
+const typeCurrentColor = (event) => {
+  // check if currently editing in quill editor
+  if (document.activeElement !== quillControl.quill.root) {
+    return
   }
+
+  // filter nonCharKey
+  const nonCharKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+  if (nonCharKeys.includes(event.key)) {
+    return
+  }
+
+  // check if currentColor is selected
+  if (!quillControl?.currentColor) {
+    return
+  }
+  // format inserted text to currentColor
+  quillControl.format('color', quillControl.currentColor)
 }
 
 export { textColorHandler, typeCurrentColor }

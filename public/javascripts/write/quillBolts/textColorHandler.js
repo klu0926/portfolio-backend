@@ -67,13 +67,13 @@ function textColorHandler(e) {
 }
 
 const typeCurrentColor = (event) => {
-  // check if currently editing in quill editor
-  if (document.activeElement !== quillControl.quill.root) {
-    return
-  }
+  // ignore when meta key is pressed (eg: command, option)
+  if (event.metaKey) return
+  // ignore if not using quill editor
+  if (document.activeElement !== quillControl.quill.root) return
 
-  // filter nonCharKey
-  const nonCharKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+  // ignore if using nonCharKey
+  const nonCharKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Shift', 'CapsLock', 'Tab'];
   if (nonCharKeys.includes(event.key)) {
     return
   }

@@ -866,8 +866,11 @@ class Controller {
     // delete button handler
     const deletes = document.querySelectorAll('.delete')
     deletes.forEach(d => {
-      d.onclick = async () => {
+      d.onclick = async (e) => {
         try {
+          e.preventDefault()
+          e.stopPropagation()
+          console.log('enter  delete ')
           // get key from parent .image-select
           const imageSelect = d.parentElement
           const key = imageSelect.dataset['key']

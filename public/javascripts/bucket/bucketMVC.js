@@ -1,9 +1,11 @@
 import sweetAlert from "../helper/sweetAlert"
 
+import getUrl from "../helper/getHostUrl"
+
 // Model
 class Model {
   constructor() {
-    this.url = 'http://localhost:3000'
+    this.url = getUrl()
     this.objectUrl = this.url + '/objects'
     this.data = [] // all data
     this.prefix = '' // folder path

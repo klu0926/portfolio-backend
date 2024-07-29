@@ -1,10 +1,11 @@
 import dayjs from 'dayjs'
 import sweetAlert from '../helper/sweetAlert.js'
+import getUrl from '../helper/getHostUrl.js'
 
 // ---------- Model
 class Model {
   constructor() {
-    this.url = 'http://localhost:3000'
+    this.url = getUrl()
     this.postUrl = this.url + '/posts'
     this.swapUrl = this.url + '/posts' + '/swap-order'
     this.posts = []

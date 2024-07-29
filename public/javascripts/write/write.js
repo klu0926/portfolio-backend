@@ -2,6 +2,8 @@ import sweetAlert from '../helper/sweetAlert.js'
 import quillControl from './quill.js'
 import createElementFromString from '../helper/createElementFromString.js'
 import '../helper/interact.js' // using interact
+import getUrl from '../helper/getHostUrl.js'
+
 // html template
 import metaInputTemp from '../../htmlTemplates/metaInput.js'
 
@@ -17,7 +19,7 @@ const defaultPost = {
 
 class Model {
   constructor() {
-    this.url = 'http://localhost:3000'
+    this.url = getUrl()
     this.objectUrl = this.url + '/objects'
     this.postUrl = this.url + '/posts'
     this.tagUrl = this.url + '/tags'

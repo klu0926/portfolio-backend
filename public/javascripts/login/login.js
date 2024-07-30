@@ -17,7 +17,7 @@ class Model {
         },
       })
     } catch (err) {
-      sweetAlert.error('Login Fail', err.message)
+      sweetAlert.error('Login Fail', err.message || err)
     }
   }
 }
@@ -44,6 +44,8 @@ class Controller {
       const response = await this.model.postLogin(password)
       const json = await response.json()
 
+      console.log('json:', json)
+
       if (!json.ok) {
         throw new Error(json.err)
       }
@@ -52,7 +54,7 @@ class Controller {
       window.location.href = "/";
 
     } catch (err) {
-      sweetAlert.error('Login Fail', err.message)
+      sweetAlert.error('Login Fail', err.message || err)
     }
   }
 }

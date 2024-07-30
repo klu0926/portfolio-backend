@@ -13,7 +13,8 @@ var session = require('express-session')
 const whiteList = [
   'http://localhost:3000',
   'http://localhost:3001',
-  'https://www.lukuoyu.com'
+  'https://www.lukuoyu.com',
+  'https://klu-portfolio-server-5858060573f4.herokuapp.com'
 ];
 const corsOptions = {
   origin: function (origin, callback) {

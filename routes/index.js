@@ -6,38 +6,45 @@ const tagController = require('../controller/tagController')
 const objectsController = require('../controller/objectsController')
 const postController = require('../controller/postController')
 const ResponseError = require('../helper/ResponseError')
+const apiRouter = require('./api')
 
-// -------- PAGES
-// ROOT -> S3 Bucket Page
-router.get('/', (req, res) => {
-  res.redirect('/bucket.html')
+// fake login
+router.use((req, res, next) => {
+  req.session.user = 'user'
+  next()
 })
 
-// ----- OBJECTS (AWS S3) 
-// get object
-router.get('/objects', objectsController.getObjects)
-// post object
-router.post('/objects', upload, tinyfy, objectsController.postObject)
-// Delete object
-router.delete('/objects', objectsController.deleteObject)
+// Password Check
+function auth(req, res, next) {
+  if (!req.session.user) {
+    res.redirect('/login'); // Adjust the path accordingly
+    return
+  } else {
+    next()
+  }
+}
+// Pages (require auth)
+router.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/login.html'));
+})
+router.get('/', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/bucket.html'));
+})
+router.get('/bucket', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/bucket.html'));
+})
+router.get('/posts', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/posts.html'));
+})
+router.get('/posts', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/posts.html'));
+})
+router.get('/write', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/write.html'));
+})
 
-// ------- POSTS (SQL) 
-router.get('/posts/:postId', postController.getPost)
-router.get('/posts', postController.getPost)
-router.post('/posts', postController.postPost)
-router.put('/posts', postController.putPost)
-router.delete('/posts', postController.deletePost)
-// post order
-router.put('/posts/swap-order', postController.swapPostsOrder)
-
-// ------ TAG
-router.get('/tags/:tagId', tagController.getTag)
-router.get('/tags', tagController.getTag)
-router.post('/tags', tagController.createTag)
-router.delete('/tags', tagController.deleteTag)
-router.post('/post-tag', tagController.createPostTag)
-router.delete('/post-tag', tagController.deletePostTag)
-
+// API
+router.use('/api', apiRouter)
 
 // 404
 router.use((req, res) => {

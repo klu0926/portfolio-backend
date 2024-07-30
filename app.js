@@ -7,6 +7,7 @@ const app = express()
 const cors = require('cors')
 const routes = require('./routes')
 const errorHandler = require('./routes/errorHandler')
+var session = require('express-session')
 
 // cors
 const whiteList = [
@@ -49,14 +50,22 @@ app.use((req, res, next) => {
   }
   next()
 })
-
 app.use(cors(corsOptions))
-app.use(express.static('public'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+// public asset
+app.use(express.static('public'))
 
+// session
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}))
 // Routes
 app.use(routes)
+
 // error handler
 app.use(errorHandler)
 

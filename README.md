@@ -3,8 +3,8 @@
 This project is a backend system that connects to an AWS S3 database, allowing for file CRUD operations. It integrates with Quill to create posts for my portfolio website, enabling easy image uploads to S3 for use in Quill posts. My API then sends this data to the frontend, generating project pages. Additionally, it uses an SQL Sequelize database to store text-related data.
 
 🌐 Frontend Website : [https://www.lukuoyu.com](https://www.lukuoyu.com)
-🌐 Frontend github : [https://www.lukuoyu.com](https://www.lukuoyu.com)
 
+🌐 Frontend github : [https://github.com/klu0926/portfolio-react](https://github.com/klu0926/portfolio-react)
 
 ## Table of Contents 📖
 

@@ -18,11 +18,12 @@ function auth(req, res, next) {
 // API
 router.use('/api', apiRouter)
 
-// Login
+// Login / Logout
 router.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../pages/login.html'));
 })
-router.post('/api/login', loginController.postLogin)
+router.post('/login', loginController.postLogin)
+router.get('/logout', loginController.getLogout)
 
 // Auth (Blocking all below)
 router.use(auth)

@@ -12,6 +12,10 @@ html {
   box-sizing: inherit;
 }
 
+body {
+  min-height: 100vh;
+}
+
 .image-div {
   max-height: 100%;
   aspect-ratio: 1/1;
@@ -31,4 +35,18 @@ html {
 
 .navbar {
   z-index: 100;
+}
+
+.container {
+  min-height: 100vh !important;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+  text-align: center;
+  margin-top: 70px;
 }

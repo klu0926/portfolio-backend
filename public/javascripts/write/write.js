@@ -19,7 +19,7 @@ const defaultPost = {
 
 class Model {
   constructor() {
-    this.url = getUrl()
+    this.url = getUrl('/api')
     this.objectUrl = this.url + '/objects'
     this.postUrl = this.url + '/posts'
     this.tagUrl = this.url + '/tags'

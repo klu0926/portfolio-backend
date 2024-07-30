@@ -22,6 +22,10 @@ const loginController = {
     } catch (err) {
       errorResponse(res, err, 'POST')
     }
+  },
+  getLogout: async (req, res) => {
+    await req.session.destroy()
+    res.redirect('/login');
   }
 }
 

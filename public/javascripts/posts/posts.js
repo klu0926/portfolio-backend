@@ -5,7 +5,7 @@ import getUrl from '../helper/getHostUrl.js'
 // ---------- Model
 class Model {
   constructor() {
-    this.url = getUrl()
+    this.url = getUrl('/api')
     this.postUrl = this.url + '/posts'
     this.swapUrl = this.url + '/posts' + '/swap-order'
     this.posts = []

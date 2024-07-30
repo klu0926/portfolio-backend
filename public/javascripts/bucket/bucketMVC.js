@@ -4,7 +4,7 @@ import getUrl from "../helper/getHostUrl"
 // Model
 class Model {
   constructor() {
-    this.url = getUrl()
+    this.url = getUrl('/api')
     this.objectUrl = this.url + '/objects'
     this.data = [] // all data
     this.prefix = '' // folder path

@@ -1,33 +1,34 @@
 const router = require('express').Router()
 const path = require('path')
-const upload = require('../middleware/multer')
-const tinyfy = require('../middleware/tinyfy')
-const tagController = require('../controller/tagController')
-const objectsController = require('../controller/objectsController')
-const postController = require('../controller/postController')
+const loginController = require('../controller/loginController')
 const ResponseError = require('../helper/ResponseError')
 const apiRouter = require('./api')
 
-// fake login
-router.use((req, res, next) => {
-  req.session.user = 'user'
-  next()
-})
 
-// Password Check
+// Authentication
 function auth(req, res, next) {
   if (!req.session.user) {
-    res.redirect('/login'); // Adjust the path accordingly
+    res.redirect('/login');
     return
   } else {
     next()
   }
 }
-// Pages (require auth)
+
+// API
+router.use('/api', apiRouter)
+
+// Login
 router.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../pages/login.html'));
 })
-router.get('/', auth, (req, res) => {
+router.post('/api/login', loginController.postLogin)
+
+// Auth (Blocking all below)
+router.use(auth)
+
+// Pages (require auth)
+router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../pages/bucket.html'));
 })
 router.get('/bucket', auth, (req, res) => {
@@ -43,8 +44,6 @@ router.get('/write', auth, (req, res) => {
   res.sendFile(path.join(__dirname, '../pages/write.html'));
 })
 
-// API
-router.use('/api', apiRouter)
 
 // 404
 router.use((req, res) => {

@@ -12,18 +12,14 @@ class Model {
   }
   async fetchPosts() {
     try {
-      console.log('fetch posts:', this.postUrl)
       const response = await fetch(this.postUrl)
-      console.log('response:', response)
       const json = await response.json()
       if (!json.ok) {
         throw new Error(json.err)
       }
       this.posts = json.data
-      console.log('fetch posts:', this.posts)
     } catch (err) {
-      //sweetAlert.error('fetch post error:', err.message)
-      console.log('err:', err)
+      sweetAlert.error('fetch post error:', err.message)
     }
   }
   async swapPostsOrder(postId1, postId2) {

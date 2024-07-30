@@ -59,7 +59,6 @@ class Model {
       this.posts.forEach(post => {
         post.data = JSON.parse(post.data)
       })
-      console.log('get all posts:', this.posts)
     } catch (err) {
       alert(err.message)
     }

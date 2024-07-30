@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   entry: {
+    login: './public/javascripts/login/login.js',
     bucket: './public/javascripts/bucket/bucketMVC.js',
     write: [
       './public/javascripts/write/quill.js',

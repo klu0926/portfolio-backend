@@ -1,5 +1,4 @@
 import sweetAlert from "../helper/sweetAlert"
-
 import getUrl from "../helper/getHostUrl"
 
 // Model

@@ -23,7 +23,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/animation.css" />
-    <link rel="stylesheet" href="/css/bucket.css" />
+    <link rel="stylesheet" href="/css/login.css" />
     <link rel="stylesheet" href="/css/index.css" />
     <!---script--->
     <script
@@ -36,12 +36,32 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css
 https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
 "
     ></script>
-    <script defer src="/dist/bucket.bundle.js"></script>
+    <script defer src="/dist/login.bundle.js"></script>
     <title>Login</title>
   </head>
-  <body>
-    login page
-
-
+  <body class="text-center">
+    <main class="container form-signin">
+      <form>
+        <img
+          class="mb-4"
+          src="/images/icons/logo.png"
+          alt="logo"
+          width="60"
+          height="60"
+        />
+        <div class="form-floating">
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            placeholder="Password"
+          />
+          <label for="floatingPassword">Password</label>
+        </div>
+        <button id="submit" class="w-100 btn btn-lg btn-danger mt-3" type="submit">
+          Login
+        </button>
+      </form>
+    </main>
   </body>
 </html>

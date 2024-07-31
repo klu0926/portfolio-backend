@@ -15,6 +15,13 @@ function auth(req, res, next) {
   }
 }
 
+// !!! for development cut it later !!!
+router.use('/', (req, res, next) => {
+  req.session.user = 'user'
+  next()
+})
+
+
 // API
 router.use('/api', apiRouter)
 

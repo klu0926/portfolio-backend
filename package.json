@@ -29,6 +29,7 @@
     "mysql2": "^3.10.0",
     "sequelize": "^6.37.3",
     "sequelize-cli": "^6.6.2",
+    "socket.io": "^4.7.5",
     "tinify": "^1.7.1",
     "youtube-embed": "^1.0.0"
   },

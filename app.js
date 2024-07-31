@@ -1,6 +1,10 @@
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
+// for socket.io
+const http = require('http')
+const { Server } = require('socket.io')
+
 const PORT = process.env.PORT || 3000
 const express = require('express')
 const app = express()
@@ -69,7 +73,23 @@ app.use(routes)
 // error handler
 app.use(errorHandler)
 
+// use raw http for socket.io
+const server = http.createServer(app)
+// socket server
+const io = new Server(server, {
+  cors: {
+    origin: PORT, // request are allow
+  }
+})
+io.on('connection', (socket) => {
+  console.log(`User connected ${socket.id}`)
+  socket.on('sentMessage', (data) => {
+    console.log('message:', data)
+    io.emit("sentMessage", data);
+  })
+})
 
-app.listen(PORT, (req, res) => {
+// server start
+server.listen(PORT, (req, res) => {
   console.log(`Server listening on PORT : ${PORT}`)
 })

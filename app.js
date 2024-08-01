@@ -12,6 +12,7 @@ const cors = require('cors')
 const routes = require('./routes')
 const errorHandler = require('./routes/errorHandler')
 var session = require('express-session')
+const socketController = require('./socket')
 
 // cors
 const whiteList = [
@@ -74,22 +75,13 @@ app.use(routes)
 app.use(errorHandler)
 
 // use raw http for socket.io
-const server = http.createServer(app)
-// socket server
-const io = new Server(server, {
-  cors: {
-    origin: PORT, // request are allow
-  }
-})
-io.on('connection', (socket) => {
-  console.log(`User connected ${socket.id}`)
-  socket.on('sentMessage', (data) => {
-    console.log('message:', data)
-    io.emit("sentMessage", data);
-  })
-})
+const httpServer = http.createServer(app)
+
+// socket.io
+socketController.init(httpServer, PORT)
 
 // server start
-server.listen(PORT, (req, res) => {
+httpServer.listen(PORT, (req, res) => {
   console.log(`Server listening on PORT : ${PORT}`)
 })
+

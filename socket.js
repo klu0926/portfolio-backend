@@ -17,6 +17,8 @@ class SocketController {
     // on connect
     this.io.on('connection', (socket) => {
       console.log(`User connected ${socket.id}`);
+      // auto welcome
+      this.sendMessage(socket, `Greetings! Enjoy your visit and feel free leave a message`, 'lu');
 
       // add socket to map
       if (!this.socketMap.has(socket.id)) {
@@ -58,7 +60,7 @@ class SocketController {
         if (user && !user.isGreeted) {
           user.name = data.name
           user.email = data.email
-          this.sendMessage(socket, `Hi ${user.name}, please leave a message, and I will respond promptly.`, 'lu');
+          this.sendMessage(socket, `Hi ${user.name}, thanks for reaching out! I’ll get back to you as soon as I can`, 'lu');
           user.isGreeted = true
         }
         // store messages

@@ -12,7 +12,7 @@ const cors = require('cors')
 const routes = require('./routes')
 const errorHandler = require('./routes/errorHandler')
 var session = require('express-session')
-const socketController = require('./socket')
+const socketController = require('./socket/socketController')
 
 // cors
 const whiteList = [
@@ -77,7 +77,7 @@ app.use(errorHandler)
 // use raw http for socket.io
 const httpServer = http.createServer(app)
 
-// socket.io
+// init socket server
 socketController.init(httpServer, PORT)
 
 // server start

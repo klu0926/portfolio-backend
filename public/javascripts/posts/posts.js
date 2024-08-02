@@ -69,7 +69,7 @@ class View {
 
       const url = window.location.href
       const base = new URL(url).origin
-      const postUrl = base + '/write.html' + '?' + 'postId=' + post.id
+      const postUrl = base + '/write' + '?' + 'postId=' + post.id
 
       return `
       <tr class='post-row' draggable="true" data-post-id=${post.id}>

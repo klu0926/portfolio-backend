@@ -6,7 +6,6 @@ function apiResponse(ok, data, message, error = null) {
   }
 }
 
-
 const userApi = {
   // get users 
   getUsers: async () => {
@@ -50,7 +49,8 @@ const userApi = {
       }
       return apiResponse(true, null, 'successfully delete a user')
     } catch (error) {
-      return apiResponse(false, null, 'Fail to delete a user', error)
+      console.error(error)
+      return apiResponse(false, null, 'Fail to delete a user', error.message)
     }
   },
   createUser: async (userData) => {
@@ -85,7 +85,8 @@ const userApi = {
       })
       return apiResponse(true, user.toJSON(), 'successfully created a user')
     } catch (error) {
-      return apiResponse(false, null, 'Fail to created a user', error)
+      console.error(error)
+      return apiResponse(false, null, 'Fail to created a user', error.message)
     }
   },
   updateUser: async (userData) => {
@@ -121,7 +122,8 @@ const userApi = {
 
       return apiResponse(true, userJSON, 'successfully updated a user')
     } catch (error) {
-      return apiResponse(false, null, 'Fail to update user', error)
+      console.error(error)
+      return apiResponse(false, null, 'Fail to update user', error.message)
     }
   },
 }

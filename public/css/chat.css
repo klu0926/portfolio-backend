@@ -1,0 +1,26 @@
+.login-control {
+  visibility: hidden;
+}
+
+.login-control.active {
+  visibility: visible;
+}
+
+.errorMessage {
+  color: red;
+  visibility: hidden;
+}
+
+.errorMessage.active {
+  visibility: visible;
+  animation: shakeX 0.5s ease-in-out;
+}
+
+.usersList {
+  border: 1px solid red;
+  visibility: hidden;
+}
+
+.usersList.active {
+  visibility: visible;
+}

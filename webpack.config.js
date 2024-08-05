@@ -9,7 +9,8 @@ module.exports = {
       './public/javascripts/write/quill.js',
       './public/javascripts/write/write.js'
     ],
-    posts: './public/javascripts/posts/posts.js'
+    posts: './public/javascripts/posts/posts.js',
+    chat: './public/javascripts/chat/chat.js',
   },
   output: {
     filename: '[name].bundle.js',

@@ -51,6 +51,10 @@ router.get('/posts', auth, (req, res) => {
 router.get('/write', auth, (req, res) => {
   res.sendFile(path.join(__dirname, '../pages/write.html'));
 })
+router.get('/chat', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../pages/chat.html'));
+})
+
 
 
 // 404

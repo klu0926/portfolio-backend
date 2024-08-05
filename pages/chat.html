@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Posts</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
@@ -11,13 +17,21 @@
       crossorigin="anonymous"
     />
     <link
+      href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css
+"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
+    <link rel="stylesheet" href="/css/animation.css" />
+    <link rel="stylesheet" href="/css/chat.css" />
     <link rel="stylesheet" href="/css/index.css" />
-    <link rel="stylesheet" href="/css/posts.css" />
-
-    <!--Script-->
+    <!--socket.io-->
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+      crossorigin="anonymous"
+    ></script>
+    <!---script--->
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -28,11 +42,8 @@
 https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
 "
     ></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"
-    ></script>
-    <script defer src="/dist/posts.bundle.js"></script>
+    <script defer src="/dist/chat.bundle.js"></script>
+    <title>Chat</title>
   </head>
   <body>
     <!--Navbar--->
@@ -56,13 +67,13 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
               <a class="nav-link" href="/">Bucket</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="/posts">Posts</a>
+              <a class="nav-link" href="/posts">Posts</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/write">Write</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/chat">Chat</a>
+              <a class="nav-link active" href="/chat">Chat</a>
             </li>
           </ul>
         </div>
@@ -73,33 +84,19 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
       <div class="row d-flex justify-content-center">
         <div id="main" class="col-12 col-lg-9">
           <!--content start-->
-          <h1>Posts</h1>
-          <p>
-            <i class="fa-regular fa-hand"></i>
-            Drag-and-Drop to swap
-            <span class="text text-danger">posts order</span>
-          </p>
-          <table id="post-table" class="table">
-            <thead>
-              <tr>
-                <th scope="col">Order</th>
-                <th scope="col">Title</th>
-                <th scope="col">Id</th>
-                <th scope="col">Created</th>
-                <th scope="col"></th>
-                <!--buttons-->
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
-
-          <!--end content-->
+          <h1>Chat</h1>
+          <!-- admin login -->
+          <div id="login-control" class="login-control active">
+            <input id="name" type="text" placeholder="name" />
+            <input id="password" type="password" placeholder="password" />
+            <button id="admin-login">Admin Login</button>
+          </div>
+          <!--message -->
+          <div id="message" class="errorMessage"></div>
+          <!-- users list -->
+          <div id="users-list" class="usersList"></div>
         </div>
       </div>
     </div>
-    <!--footer-->
-    <footer class="footer bg-dark">
-      <a class="text-secondary" href="/logout"> Sign Out </a>
-    </footer>
   </body>
 </html>

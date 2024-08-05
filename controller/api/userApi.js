@@ -92,16 +92,7 @@ const userApi = {
   updateUser: async (userData) => {
     try {
       let { name, email, messages, data } = userData
-
-      // check fields
-      const errorItems = []
-      const requireFields = { name, email }
-      Object.keys(requireFields).forEach(key => {
-        if (!requireFields[key]) errorItems.push(key)
-      })
-      if (errorItems.length !== 0) {
-        throw new Error(`Missing required fields: ${errorItems.join(',')}`)
-      }
+      if (!email) throw new Error('Missing email')
 
       // check user exist
       const user = await User.findOne({ where: { email } })

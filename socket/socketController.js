@@ -107,17 +107,12 @@ class SocketController {
     }
   }
   onDisconnect = async (socket) => {
-    // find if user online
+    console.log(`socket disconnect: ${socket.id}`)
+    // find user online
     const email = this.socketEmailList.get(socket.id)
     if (!email) return
-
-    console.log('email:', email)
-
     const user = this.onlineUsersMap.get(email)
     if (!user) return
-
-    console.log('user:', user)
-
 
     // check if socket exist
     const index = user.socketsList?.findIndex(socketId => socketId === socket.id)
@@ -126,17 +121,17 @@ class SocketController {
       user.socketsList.splice(index, 1)
     }
 
-    // save message to database
-    console.log('saving message to database...')
-    await userApi.updateUser({
-      name: user.name,
-      email: user.email,
-      messages: user.messages,
-      data: user.data
-    })
-
-    // remove user if no more socket
+    // if user's sockets are all disconnected
+    // save message to database, and delete user from online list
     if (user.socketsList.length === 0) {
+      // save message to database
+      console.log('saving message to database...')
+      await userApi.updateUser({
+        name: user.name,
+        email: user.email,
+        messages: user.messages,
+        data: user.data
+      })
       this.onlineUsersMap.delete(email)
     }
   }
@@ -178,20 +173,16 @@ class SocketController {
       // login
       socket.on('login', async (data) => {
         await this.onLogin(socket, data)
-        console.log('login:', socket.id)
-        console.log('onlineUsersMap:', this.onlineUsersMap)
       })
 
       // Disconnect(no user input)
       socket.on('disconnect', async () => {
         this.onDisconnect(socket)
-        console.log('disconnect:', socket.id)
       })
 
       // got message
       socket.on('message', async (messageObject) => {
         const { message, from } = messageObject
-        console.log('got message:', message)
         this.messageResponse(socket, message, from)
       })
     })

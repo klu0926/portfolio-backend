@@ -9,6 +9,7 @@ class SocketController {
     // temp save for online users
     // email as key
     this.onlineUsersMap = new Map()
+    this.socketEmailList = new Map()
     this.defaultUserObject = {
       name: '',
       email: '',
@@ -34,7 +35,7 @@ class SocketController {
       }
 
       // find user in server function
-      async function getServerUser(email) {
+      async function getServerUser(email, name) {
         let serverResponse = await userApi.getUser(email)
         let serverUser = null
         if (serverResponse.ok) {
@@ -55,34 +56,40 @@ class SocketController {
       }
 
 
-      // if user is online 
-      let user = this.onlineUsersMap.get(email)
-      let serverUser = null
-      if (user) {
-        console.log('user is online')
-        // add to socketList
-        user.socketsList.push(socket.id)
-      } else {
-        // get server user
-        console.log('user is not online, get server user')
-        serverUser = await getServerUser(email)
-        // update online user
+      // update user
+      const updateUser = async (email, name, socket) => {
+        // Retrieve or fetch user
+        let user = this.onlineUsersMap.get(email)
+        if (!user) {
+          user = await getServerUser(email);
+          user.messages = JSON.parse(user.messages)
+          user.data = JSON.parse(user.data)
+        }
+
+        // Update online user
         this.onlineUsersMap.set(email, {
-          email: serverUser.email,
-          name: serverUser.name,
-          messages: serverUser.messages,
-          socketsList: [socket.id],
+          name,
+          email,
+          messages: user.messages || [],
+          data: user.data || {},
+          socketsList: user.socketsList ? [...user.socketsList, socket.id] : [socket.id],
           isGreeted: false
-        })
-        user = this.onlineUsersMap.get(email)
+        });
+
+        // Log updated user
+        user = this.onlineUsersMap.get(email);
+        console.log('User after update:', user);
+
+        // update socket list
+        this.socketEmailList.set(socket.id, email)
+        return user
       }
 
-      console.log('user:', user)
-      console.log('onlineUserMap:', this.onlineUsersMap)
+      const user = await updateUser(email, name, socket)
 
       // response
       if (!user.isGreeted) {
-        this.sendMessage(socket, `Hi ${user.name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`, 'lu')
+        this.sendMessage(socket, `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`, 'lu')
         user.isGreeted = true
       } else {
         this.sendMessage(socket, `Welcome back ${user.name}`, 'lu')
@@ -92,14 +99,28 @@ class SocketController {
       this.sendMessage(socket, `Fail to login, ${err.message}`, 'server')
     }
   }
-  // onDisconnect(socket) {
-  //   socket.on('disconnect', () => {
-  //     console.log('disconnect:', socket.id)
-  //     // remove socket from map
-  //     this.onlineUsersMap.delete(socket.id)
-  //     console.log('map:', this.onlineUsersMap)
-  //   })
-  // }
+  onDisconnect(socket) {
+    console.log('disconnect:', socket.id)
+    // find if user online
+    const email = this.socketEmailList.get(socket.id)
+    if (!email) return
+
+    const user = this.onlineUsersMap.get(email)
+    if (!user) return
+
+    // check if socket exist
+    const index = user.socketsList?.findIndex(socketId => socketId === socket.id)
+    if (index !== -1) {
+      // remove socket
+      user.socketsList.splice(index, 1)
+    }
+    // remove user if no more socket
+    if (user.socketsList.length === 0) {
+      this.onlineUsersMap.delete(email)
+    }
+    console.log('onlineUserMap:', this.onlineUsersMap)
+
+  }
   sendMessage(socket, message, from = 'server') {
     this.io.to(socket.id).emit('sentMessage', {
       from,
@@ -130,7 +151,23 @@ class SocketController {
         this.onLogin(socket, data)
       })
 
-      // 
+      // Disconnect(no user input)
+      socket.on('disconnect', () => {
+        this.onDisconnect(socket)
+      })
+
+      // send message
+      socket.on('sentMessage', (data) => {
+        console.log('got messages:', data)
+        const user = this.onlineUsersMap.get(data.email)
+        user.messages.push(data.message)
+        if (user) {
+          this.sendMessage(socket, {
+            messages: data.messages,
+          }, data.from)
+        }
+
+      })
 
     })
   }

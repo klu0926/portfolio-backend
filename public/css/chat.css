@@ -1,9 +1,15 @@
-.login-control {
-  visibility: hidden;
+.admin-logout {
+  display: none;
+}
+.admin-logout.active {
+  display: block;
 }
 
+.login-control {
+  display: none;
+}
 .login-control.active {
-  visibility: visible;
+  display: flex;
 }
 
 .errorMessage {

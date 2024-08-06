@@ -1,6 +1,8 @@
 const { Server } = require('socket.io');
 const userApi = require('../controller/api/userApi')
 const bcrypt = require('bcrypt')
+const crypto = require('crypto');
+
 
 class SocketController {
   constructor(userApi) {
@@ -12,37 +14,58 @@ class SocketController {
     this.onlineUsersMap = new Map()
     this.socketEmailList = new Map()
     this.adminSockets = []
-    this.adminSessionId = '12345'
+    this.adminSessionId = ''
   }
   onAdminLogin = (socket, adminData) => {
     try {
       console.log('adminData:', adminData)
-      const { name, password } = adminData
-      if (!name || !password) throw new Error('Missing name or password')
+      const { sessionId, name, password } = adminData
 
-      // check username
-      if (name !== process.env.SOCKET_ADMIN_NAME) {
-        throw new Error('Wrong user name')
+      let isAuthorized = false
+      // use session login --------
+      if (this.adminSessionId && sessionId === this.adminSessionId) {
+        isAuthorized = true
+        console.log('this.adminSession')
       }
 
-      // check password
-      if (!bcrypt.compareSync(password, process.env.SOCKET_ADMIN_PASSWORD_HASH)) {
-        throw new Error('Wrong password')
+      // return if no name and password
+      if (!name && !password && !isAuthorized) return
+
+      // use name and password login
+      if (!isAuthorized) {
+        // Password login ---------
+        if (!name || !password) throw new Error('Missing name or password')
+
+        // check username
+        if (name !== process.env.SOCKET_ADMIN_NAME) {
+          throw new Error('Wrong user name')
+        }
+        // check password
+        if (!bcrypt.compareSync(password, process.env.SOCKET_ADMIN_PASSWORD_HASH)) {
+          throw new Error('Wrong password')
+        }
       }
 
+      // Record Admin -------
+      // generate adminSessionId if is new session (adminSockets is empty)
+      if (this.adminSockets.length === 0) {
+        this.adminSessionId = crypto.randomBytes(16).toString('hex')
+      }
       // push to adminSockets
       if (this.adminSockets.indexOf(socket.id) === -1) {
         this.adminSockets.push(socket.id)
       }
 
       console.log('adminSockets:', this.adminSockets)
+      console.log('server adminSessionId:', this.adminSessionId)
 
-      // response with login
-      console.log('admin login successful')
+      // response with login to ONE admin socket
       this.loginResponse(socket, {
         login: true,
         adminSessionId: this.adminSessionId
       })
+
+      console.log('admin login successful')
     } catch (err) {
       console.error(err)
       this.errorResponse(socket, err.message)
@@ -95,7 +118,7 @@ class SocketController {
         // Retrieve or fetch user
         let user = this.onlineUsersMap.get(email)
         if (!user) {
-          user = await getServerUser(email);
+          user = await getServerUser(email, name);
           user.messages = JSON.parse(user.messages)
           user.data = JSON.parse(user.data)
         }
@@ -119,9 +142,11 @@ class SocketController {
       // update user in local
       const user = await updateUserToOnlineMap(email, name, socket)
 
-      // send all messages back to user
-      // do not save those messages again
-      if (user.messages.length > 1) {
+      // if user is first time login, greet the user
+      if (user.messages.length === 0) {
+        const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
+        this.messageResponse(socket, greeting, 'lu')
+      } else {
         this.messageResponse(socket)
       }
 
@@ -129,30 +154,31 @@ class SocketController {
       this.loginResponse(socket, {
         login: true
       })
-      
-      // send greeting messages
-      if (user.messages.length === 0) {
-        const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
-        this.messageResponse(socket, greeting, 'lu')
-      }
+
     } catch (err) {
       console.error(err)
       this.errorResponse(socket, err.message)
     }
   }
-  onDisconnect = async (socket) => {
+  onDisconnect = async (socket, removeSession) => {
     console.log(`socket disconnect: ${socket.id}`)
 
-    // ADMIN
+    // check ADMIN
     const adminSocketIndex = this.adminSockets.indexOf(socket.id)
     if (adminSocketIndex !== -1) {
       // remove admin socket
       this.adminSockets.splice(adminSocketIndex, 1)
-      console.log('adminSockets:', this.adminSockets)
+
+      if (removeSession) {
+        // remove admin session
+        this.adminSessionId = ''
+        console.log('remove adminSession:', this.adminSockets)
+      }
+
       return
     }
 
-    // USERS
+    // check for USERS
     // find user online
     const email = this.socketEmailList.get(socket.id)
     if (!email) return
@@ -208,7 +234,6 @@ class SocketController {
   }
   // ADMIN
   adminGetUsers = (socket) => {
-    console.log('adminGetUsers:', socket.id)
     //  !!!!! check if socket is adminSocks (login)
     const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
     try {
@@ -220,7 +245,7 @@ class SocketController {
   }
   // export init to app.js
   init = (httpServer, port) => {
-
+    console.log('socket controller server init!')
     // create server
     this.io = new Server(httpServer, {
       cors: {
@@ -239,6 +264,16 @@ class SocketController {
       // admin login
       socket.on('adminLogin', async (data) => {
         this.onAdminLogin(socket, data)
+      })
+
+      // admin auto sessionId login
+      socket.on('adminSessionLogin', (data) => {
+        this.onAdminLogin(socket, data)
+      })
+
+      // admin logout
+      socket.on('adminLogout', () => {
+        this.onDisconnect(socket, true)
       })
 
       // admin get users

@@ -16,16 +16,20 @@ class SocketController {
     this.adminSockets = []
     this.adminSessionId = ''
   }
+  isAdmin = (socket) => {
+    if (!this.adminSockets?.find(s => s === socket.id)) {
+      return false
+    }
+    return true
+  }
   onAdminLogin = (socket, adminData) => {
     try {
-      console.log('adminData:', adminData)
       const { sessionId, name, password } = adminData
 
       let isAuthorized = false
       // use session login --------
       if (this.adminSessionId && sessionId === this.adminSessionId) {
         isAuthorized = true
-        console.log('this.adminSession')
       }
 
       // return if no name and password
@@ -56,18 +60,13 @@ class SocketController {
         this.adminSockets.push(socket.id)
       }
 
-      console.log('adminSockets:', this.adminSockets)
-      console.log('server adminSessionId:', this.adminSessionId)
-
       // response with login to ONE admin socket
       this.loginResponse(socket, {
         login: true,
         adminSessionId: this.adminSessionId
       })
-
-      console.log('admin login successful')
+      console.log('Admin login')
     } catch (err) {
-      console.error(err)
       this.errorResponse(socket, err.message)
     }
   }
@@ -150,19 +149,19 @@ class SocketController {
         this.messageResponse(socket)
       }
 
-      // return login response
+      // emit login response to user
       this.loginResponse(socket, {
         login: true
       })
 
+      // update online users to admin 
+      this.adminUsersUpdate()
+
     } catch (err) {
-      console.error(err)
       this.errorResponse(socket, err.message)
     }
   }
   onDisconnect = async (socket, removeSession) => {
-    console.log(`socket disconnect: ${socket.id}`)
-
     // check ADMIN
     const adminSocketIndex = this.adminSockets.indexOf(socket.id)
     if (adminSocketIndex !== -1) {
@@ -174,7 +173,6 @@ class SocketController {
         this.adminSessionId = ''
         console.log('remove adminSession:', this.adminSockets)
       }
-
       return
     }
 
@@ -204,6 +202,9 @@ class SocketController {
         data: user.data
       })
       this.onlineUsersMap.delete(email)
+
+      // update online users to admin 
+      this.adminUsersUpdate()
     }
   }
   messageResponse = (socket, newMessage, newMessageFrom = 'server') => {
@@ -233,19 +234,53 @@ class SocketController {
     this.io.to(socket.id).emit('error', message);
   }
   // ADMIN
-  adminGetUsers = (socket) => {
-    //  !!!!! check if socket is adminSocks (login)
-    const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
+  adminGetAllUsers = async (socket) => {
     try {
-      this.io.to(socket.id).emit('adminGetUsers', onlineUserObject);
+      // check isAdmin
+      const isAdmin = this.isAdmin(socket)
+      if (!isAdmin) throw new Error('Please login first')
+
+      // get all users
+      const response = await userApi.getUsers()
+      if (!response.ok) throw new Error(response.error)
+      const users = response.data
+
+      // responses
+      this.io.to(socket.id).emit('adminGetAllUsers', users);
+
     } catch (err) {
-      console.log('adminGetUser Catch socket:', socket)
-      this.errorResponse(socket, 'Fail to get user')
+      console.error('Fail to get all users:', err.message)
+      this.errorResponse(socket, `Fail to get all users:`, err.message)
+    }
+  }
+  adminGetOnlineUsers = (socket) => {
+    try {
+      // check isAdmin
+      const isAdmin = this.isAdmin(socket)
+      if (!isAdmin) throw new Error('Please login first')
+
+      // get all online users
+      const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
+
+      // response
+      this.io.to(socket.id).emit('adminGetOnlineUsers', onlineUserObject);
+    } catch (err) {
+      this.errorResponse(socket, `Fail to get online users:`, err.message)
+    }
+  }
+  adminUsersUpdate = () => {
+    if (this.adminSockets.length !== 0) {
+      const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
+
+      // send to admin
+      this.adminSockets.forEach(s => {
+        this.io.to(s).emit('onlineUsersUpdate', onlineUserObject);
+      })
+      console.log('emit onlineUsersUpdate:', onlineUserObject)
     }
   }
   // export init to app.js
   init = (httpServer, port) => {
-    console.log('socket controller server init!')
     // create server
     this.io = new Server(httpServer, {
       cors: {
@@ -254,11 +289,15 @@ class SocketController {
     });
     // on connect
     this.io.on('connection', (socket) => {
-      console.log(`socket connect ${socket.id}`)
 
       // login
-      socket.on('login', async (data) => {
-        await this.onLogin(socket, data)
+      socket.on('login', (data) => {
+        this.onLogin(socket, data)
+      })
+
+      // logout
+      socket.on('logout', async () => {
+        this.onDisconnect(socket)
       })
 
       // admin login
@@ -276,9 +315,14 @@ class SocketController {
         this.onDisconnect(socket, true)
       })
 
-      // admin get users
-      socket.on('adminGetUsers', () => {
-        this.adminGetUsers(socket)
+      // admin get all users
+      socket.on('adminGetAllUsers', () => {
+        this.adminGetAllUsers(socket)
+      })
+
+      // admin get online users
+      socket.on('adminGetOnlineUsers', () => {
+        this.adminGetOnlineUsers(socket)
       })
 
       // got message

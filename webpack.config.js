@@ -10,7 +10,7 @@ module.exports = {
       './public/javascripts/write/write.js'
     ],
     posts: './public/javascripts/posts/posts.js',
-    chat: './public/javascripts/chat/chat.js',
+    clients: './public/javascripts/clients/clients.js',
   },
   output: {
     filename: '[name].bundle.js',

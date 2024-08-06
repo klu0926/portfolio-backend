@@ -23,7 +23,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/animation.css" />
-    <link rel="stylesheet" href="/css/chat.css" />
+    <link rel="stylesheet" href="/css/clients.css" />
     <link rel="stylesheet" href="/css/index.css" />
     <!--socket.io-->
     <script
@@ -42,7 +42,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css
 https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
 "
     ></script>
-    <script defer src="/dist/chat.bundle.js"></script>
+    <script defer src="/dist/clients.bundle.js"></script>
     <title>Chat</title>
   </head>
   <body>
@@ -73,36 +73,47 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
               <a class="nav-link" href="/write">Write</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="/chat">Chat</a>
+              <a class="nav-link active" href="/clients">Clients</a>
             </li>
           </ul>
         </div>
       </div>
     </nav>
     <!-- Create the editor container -->
-    <div class="container mt-5">
+    <div class="container mt-5 clients-container">
       <div class="row d-flex justify-content-center">
         <div id="main" class="col-12 col-lg-9">
           <!--content start-->
-          <h1>Chat</h1>
-          <button id="admin-logout"  class="btn btn-danger btn-sm admin-logout" >Logout</button>
-          <!-- admin login -->
-          <div id="login-control" class="input-group login-control active">
-            <input
-              id="name"
-              class="form-control col-4"
-              type="text"
-              placeholder="name"
-            />
-            <input
-              id="password"
-              class="form-control col-4"
-              type="password"
-              placeholder="password"
-            />
-            <button id="admin-login" class="btn btn-primary btn-sm">
-              Admin Login
+          <div class="clients-title">
+            <h1>Clients</h1>
+            <button
+              id="admin-logout"
+              class="btn btn-danger btn-sm admin-logout"
+            >
+              Logout
             </button>
+          </div>
+          <!-- admin login -->
+          <div id="login-control" class="login-control active">
+            <form class="input-group">
+              <input
+                id="name"
+                class="form-control col-4"
+                type="text"
+                placeholder="name"
+                autocomplete="off"
+              />
+              <input
+                id="password"
+                class="form-control col-4"
+                type="password"
+                placeholder="password"
+                autocomplete="off"
+              />
+              <button id="admin-login" class="btn btn-primary btn-sm">
+                Admin Login
+              </button>
+            </form>
           </div>
           <!--message -->
           <div id="message" class="errorMessage"></div>

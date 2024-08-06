@@ -1,0 +1,136 @@
+h1,
+p {
+  margin: 0px;
+}
+
+.clients-container {
+  max-width: 1000px;
+}
+
+.clients-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.admin-logout {
+  display: none;
+  height: 30px;
+  background-color: var(--danger);
+  border: none;
+}
+.admin-logout.active {
+  display: block;
+}
+
+.admin-logout.active:hover {
+  background-color: rgb(242, 62, 62);
+}
+
+.login-control {
+  display: none;
+}
+.login-control.active {
+  display: flex;
+}
+
+.errorMessage {
+  color: red;
+  visibility: hidden;
+}
+
+.errorMessage.active {
+  visibility: visible;
+  animation: shakeX 0.5s ease-in-out;
+}
+
+/* users list */
+.usersList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  visibility: hidden;
+  margin-top: 15px;
+}
+
+.usersList.active {
+  visibility: visible;
+}
+
+/* user div */
+.user-div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+  padding: 15px;
+  border-radius: 5px;
+  background-color: rgb(228, 228, 228);
+  border: 1px solid rgb(215, 215, 215);
+  box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.1);
+  color: grey;
+  cursor: pointer;
+}
+
+.user-div.online {
+  background-color: white;
+  color: black;
+}
+
+/* user div top left */
+.user-top-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  height: 100%;
+  gap: 4px;
+}
+
+.user-info {
+}
+
+.user-name {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.text-break {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.user-email {
+  font-weight: bold;
+}
+
+.user-lastMessage {
+}
+
+/* user div top right */
+.user-top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+  height: 100%;
+}
+.user-last-date {
+  color: grey;
+  font-size: 0.8rem;
+}
+.user-new-messages-count {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: rgb(169, 167, 167);
+  color: white;
+  width: 30px;
+  height: 30px;
+}
+
+.online .user-new-messages-count {
+  background-color: var(--primary);
+}

@@ -80,7 +80,60 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
       </div>
     </nav>
     <!-- Create the editor container -->
-    <div class="container mt-5 clients-container">
+    <div class="container clients-container mt-4">
+      <!--message panel-->
+      <div id="message-panel-wrapper" class="message-panel-wrapper">
+        <div id="message-panel" class="message-panel">
+          <div class="message-panel-top">
+            <div class="message-panel-title-div">
+              <span class="message-panel-title">Messages</span>
+              <div id="message-panel-close" class="message-panel-close">
+                <i class="fa-solid fa-xmark"></i>
+              </div>
+            </div>
+            <div class="message-panel-top-info">
+              <span class="message-panel-client-name">
+                <i class="fa-regular fa-user"></i>
+                lulu</span
+              >
+              <span class="message-panel-client-email">
+                <i class="fa-regular fa-envelope"></i>
+                lulu@gmail.com</span
+              >
+            </div>
+            <div class="message-panel-right"></div>
+          </div>
+          <!---messages-->
+          <div id="message-panel-messages" class="message-panel-messages">
+            <div class="message-div message-div-server">
+              <div class="server-message message">
+                Hi this is lu, nice to meet you!
+              </div>
+              <span class="message-date">2024/09/26 10:00AM</span>
+            </div>
+
+            <div class="message-div message-div-client">
+              <div class="client-message message">
+                Hello, this is client, need to talk to you about something
+              </div>
+              <span class="message-date">2024/09/26 10:10AM</span>
+            </div>
+          </div>
+          <!--message input / send-->
+          <div class="message-panel-bottom">
+            <form class="input-group">
+              <input
+                id="message-input"
+                class="form-control"
+                type="text"
+                placeholder="message..."
+              />
+              <button id="message-send" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--message panel wrapper end--->
       <div class="row d-flex justify-content-center">
         <div id="main" class="col-12 col-lg-9">
           <!--content start-->

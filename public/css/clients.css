@@ -134,3 +134,131 @@ p {
 .online .user-new-messages-count {
   background-color: var(--primary);
 }
+
+/* message-panel */
+.message-panel-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.367);
+  visibility: hidden;
+  z-index: 30;
+}
+
+.message-panel-wrapper.active {
+  visibility: visible;
+}
+
+.message-panel-wrapper.active .message-panel {
+  animation: message-panel-pop 0.3s linear;
+}
+
+.message-panel {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 96%;
+  width: 500px;
+  padding: 15px;
+  border: black;
+  border-radius: 5px;
+  background-color: white;
+  box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.582);
+}
+
+/* message-panel-top */
+.message-panel-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: space-between;
+  margin-bottom: 6px;
+}
+
+.message-panel-title-div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.message-panel-title {
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.message-panel-top-info {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 20px;
+  color: rgb(116, 116, 116);
+  margin-left: 5px;
+}
+
+.message-panel-close {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.message-panel-close:hover {
+  background-color: var(--gray);
+}
+
+/* message-panel-messages (middle) */
+.message-panel-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background-color: rgb(239, 238, 238);
+  border-radius: 5px;
+  margin-bottom: 15px;
+  min-height: 300px;
+  overflow-y: visible;
+}
+
+.message-div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.message-div-server {
+  display: flex;
+  align-items: end;
+  align-self: flex-end;
+}
+
+.message-div-client {
+  display: flex;
+  align-items: start;
+  align-self: flex-start;
+}
+
+.message {
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin: 0px;
+  font-size: 0.95rem;
+  width: 70%;
+}
+
+.server-message {
+  background-color: rgb(19, 112, 241);
+}
+.client-message {
+  background-color: var(--pink);
+}
+
+.message-date {
+  font-size: 0.7rem;
+  color: rgb(138, 138, 138);
+}

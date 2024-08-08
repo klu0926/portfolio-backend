@@ -40,6 +40,18 @@
   }
 }
 
+@keyframes message-panel-pop {
+  0% {
+    transform: translateX(-50%) scale(0.95);
+  }
+  40% {
+    transform: translateX(-50%) scale(1.02);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
 @keyframes shakeX {
   0% {
     transform: translateX(0);

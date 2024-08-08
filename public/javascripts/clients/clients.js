@@ -55,7 +55,7 @@ class View {
       logoutBtn.classList.remove('active')
     }
   }
-  renderUsersList(usersArray) {
+  renderUsersList(usersArray, onClickHandler) {
     const usersList = document.querySelector('#users-list')
     usersList.innerHTML = ''
 
@@ -77,6 +77,7 @@ class View {
         const userDiv = document.createElement('div')
         userDiv.classList.add('user-div')
         userDiv.dataset.userEmail = user.email
+        userDiv.onclick = onClickHandler
 
         userDiv.innerHTML = `
             <div class='user-top-left'>
@@ -146,12 +147,22 @@ class Controller {
   }
   // Setups ===================================
   listenerSetup() {
+    // login / logout
     const adminLogin = document.querySelector('#admin-login')
     const adminLogout = document.querySelector('#admin-logout')
     adminLogin.onclick = (e) => {
       this.loginHandler(e)
     }
     adminLogout.onclick = this.logoutHandler
+
+    // message-panel
+    const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
+    const messagePanelClose = document.querySelector('#message-panel-close')
+    const messageSendButton = document.querySelector('#message-send')
+
+    messagePanelClose.onclick = this.messagePanelCloseHandler
+    messagePanelWrapper.onclick = this.messagePanelWrapperHandler
+    messageSendButton.onclick = this.messagePanelSendButtonHandler
   }
   socketListenerSetup() {
     const socket = this.model.socket
@@ -194,19 +205,16 @@ class Controller {
   }
   // Socket Listener functions ===================
   onAdminGetallUsers = (usersArray) => {
-    console.log('all users:', usersArray)
-
     // store users
     this.users = usersArray
 
     // render users list
-    this.view.renderUsersList(usersArray)
+    this.view.renderUsersList(usersArray, this.userDivOnClickHandler)
 
     // get online users (auto trigger view user list update)
     this.model.getOnlineUsers()
   }
   onAdminGetOnlineUsers = (onlineUsersObject) => {
-    console.log('onlineUsersObject', onlineUsersObject)
     // store online users
     this.onlineUsersObject = this.onlineUsersObject
 
@@ -247,7 +255,31 @@ class Controller {
       sweetAlert.error('Login Fail', err.message)
     }
   }
+  userDivOnClickHandler = () => {
+    // active panel wrapper
+    const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
+    messagePanelWrapper.classList.add('active')
+    // render user div with user messages
+    // .....
+  }
+  messagePanelWrapperHandler = (e) => {
+    const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
 
+    if (e.target === messagePanelWrapper) {
+      messagePanelWrapper.classList.remove('active')
+    }
+  }
+  messagePanelCloseHandler = (e) => {
+    const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
+    messagePanelWrapper.classList.remove('active')
+  }
+  messagePanelSendButtonHandler = (e) => {
+    e.preventDefault()
+    const messageInput = document.querySelector('#message-input')
+    const message = messageInput.value
+    if (message.trim() === '') return
+    console.log(`send message: ${messageInput.value}`)
+  }
 }
 
 const model = new Model()

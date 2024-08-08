@@ -92,19 +92,20 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
               </div>
             </div>
             <div class="message-panel-top-info">
-              <span class="message-panel-client-name">
+              <div class="message-panel-client-name">
                 <i class="fa-regular fa-user"></i>
-                lulu</span
-              >
-              <span class="message-panel-client-email">
+                <span id="message-panel-name">lulu</span>
+              </div>
+              <div class="message-panel-client-email">
                 <i class="fa-regular fa-envelope"></i>
-                lulu@gmail.com</span
-              >
+                <span id="message-panel-email">lulu@gmail.com</span>
+              </div>
             </div>
             <div class="message-panel-right"></div>
           </div>
           <!---messages-->
           <div id="message-panel-messages" class="message-panel-messages">
+
             <div class="message-div message-div-server">
               <div class="server-message message">
                 Hi this is lu, nice to meet you!
@@ -118,6 +119,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
               </div>
               <span class="message-date">2024/09/26 10:10AM</span>
             </div>
+            
           </div>
           <!--message input / send-->
           <div class="message-panel-bottom">
@@ -127,6 +129,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
                 class="form-control"
                 type="text"
                 placeholder="message..."
+                autocomplete="off"
               />
               <button id="message-send" class="btn btn-primary">Send</button>
             </form>

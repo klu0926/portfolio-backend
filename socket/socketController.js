@@ -65,8 +65,8 @@ class SocketController {
         login: true,
         adminSessionId: this.adminSessionId
       })
-      console.log('Admin login')
     } catch (err) {
+      console.log(err)
       this.errorResponse(socket, err.message)
     }
   }
@@ -102,7 +102,6 @@ class SocketController {
           const response = await userApi.createUser({
             name,
             email,
-            messages: [],
             data: {}
           })
           if (!response.ok) {
@@ -118,13 +117,13 @@ class SocketController {
         let user = this.onlineUsersMap.get(email)
         if (!user) {
           user = await getServerUser(email, name);
-          user.messages = JSON.parse(user.messages)
           user.data = JSON.parse(user.data)
         }
 
         // Update online user
         this.onlineUsersMap.set(email, {
-          name,
+          id: user.id,
+          name: user.name,
           email,
           messages: user.messages || [],
           data: user.data || {},
@@ -151,13 +150,15 @@ class SocketController {
 
       // emit login response to user
       this.loginResponse(socket, {
-        login: true
+        login: true,
+        user
       })
 
       // update online users to admin 
       this.adminUsersUpdate()
 
     } catch (err) {
+      console.log(err)
       this.errorResponse(socket, err.message)
     }
   }
@@ -193,21 +194,12 @@ class SocketController {
     // if user's sockets are all disconnected
     // save message to database, and delete user from online list
     if (user.socketsList.length === 0) {
-      // save message to database
-      console.log('saving message to database...')
-      await userApi.updateUser({
-        name: user.name,
-        email: user.email,
-        messages: user.messages,
-        data: user.data
-      })
       this.onlineUsersMap.delete(email)
-
       // update online users to admin 
       this.adminUsersUpdate()
     }
   }
-  messageResponse = (socket, newMessage, newMessageFrom = 'server') => {
+  messageResponse = (socket, newMessage, from = 'server') => {
     const email = this.socketEmailList.get(socket.id)
     const user = this.onlineUsersMap.get(email)
     if (!user) return
@@ -215,7 +207,8 @@ class SocketController {
     if (newMessage) {
       user.messages = [...user.messages,
       {
-        from: newMessageFrom,
+        from,
+        email,
         message: newMessage,
         date: new Date()
       }
@@ -223,6 +216,11 @@ class SocketController {
     }
     // send to all socket for the same user
     user.socketsList.forEach(socketId => {
+      this.io.to(socketId).emit('message', user.messages);
+    })
+
+    // send to all admin sockets
+    this.adminSockets.forEach(socketId => {
       this.io.to(socketId).emit('message', user.messages);
     })
   }
@@ -249,7 +247,7 @@ class SocketController {
       this.io.to(socket.id).emit('adminGetAllUsers', users);
 
     } catch (err) {
-      console.error('Fail to get all users:', err.message)
+      console.log(err)
       this.errorResponse(socket, `Fail to get all users:`, err.message)
     }
   }
@@ -265,6 +263,7 @@ class SocketController {
       // response
       this.io.to(socket.id).emit('adminGetOnlineUsers', onlineUserObject);
     } catch (err) {
+      console.log(err)
       this.errorResponse(socket, `Fail to get online users:`, err.message)
     }
   }
@@ -276,7 +275,6 @@ class SocketController {
       this.adminSockets.forEach(s => {
         this.io.to(s).emit('onlineUsersUpdate', onlineUserObject);
       })
-      console.log('emit onlineUsersUpdate:', onlineUserObject)
     }
   }
   // export init to app.js
@@ -327,8 +325,18 @@ class SocketController {
 
       // got message
       socket.on('message', async (messageObject) => {
-        const { message, from } = messageObject
-        this.messageResponse(socket, message, from)
+        try {
+          console.log('get message:', messageObject)
+          const { from, id, message } = messageObject
+          this.messageResponse(socket, message, from)
+
+          // store message to server
+          this.userApi.createMessage(id, message)
+
+        } catch (err) {
+          console.error('Fail to get message:', err)
+          this.errorResponse(socket, err.message)
+        }
       })
 
       // Disconnect(no user input)

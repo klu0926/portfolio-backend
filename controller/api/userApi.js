@@ -1,4 +1,4 @@
-const { User } = require('../../models')
+const { User, Message } = require('../../models')
 
 function apiResponse(ok, data, message, error = null) {
   return {
@@ -10,34 +10,43 @@ const userApi = {
   // get users 
   getUsers: async () => {
     try {
-      const usersData = await User.findAll({
+      const users = await User.findAll({
         attributes: {
           exclude: ['updatedAt']
         },
+        include: [{
+          model: Message,
+          as: 'messages',
+        }],
         order: [['name', 'ASC']], // sort with post.order
       })
-
-      const users = usersData.map(user => {
-        user.messages = JSON.parse(user.messages)
-        user.data = JSON.parse(user.data)
+      if (!users) {
+        throw new Error('Can not find users')
+      }
+      const usersJSON = users.map(user => {
         return user.toJSON()
       })
-
-      return apiResponse(true, users, 'successfully get all users')
+      return apiResponse(true, usersJSON, 'successfully get all users')
     } catch (error) {
-      return apiResponse(false, null, 'Fail to get all users', error)
+      return apiResponse(false, null, error.message)
     }
   },
   getUser: async (email) => {
     try {
       const user = await User.findOne({
         where: { email },
-        raw: true
+        include: [{
+          model: Message,
+          as: 'messages',
+        }],
       })
-      if (!user) throw new Error('User does not exist')
-      return apiResponse(true, user, 'successfully get a user')
+      if (user) {
+        throw new Error('Can not find user')
+      }
+      const userJSON = user.toJSON()
+      return apiResponse(true, userJSON, 'successfully get a user')
     } catch (error) {
-      return apiResponse(false, null, 'Fail to get a user', error)
+      return apiResponse(false, null, error.message)
     }
   },
   deleteUser: async (email) => {
@@ -72,6 +81,9 @@ const userApi = {
 
       // check user exist
       const response = await userApi.getUser(email)
+      if (response.error) {
+        throw new Error(response.error.message)
+      }
       if (response.ok) {
         throw new Error('User already exist with same email')
       }
@@ -102,13 +114,17 @@ const userApi = {
 
       // update user
       if (name) user.name = name
-      if (messages) user.messages = JSON.stringify(messages)
       if (data) user.data = JSON.stringify(data)
       await user.save()
 
+      // create message
+      await Message.bulkCreate({
+        userId: user.id,
+        message: messages.message
+      })
+
       // to json
       const userJSON = user.toJSON()
-      userJSON.messages = JSON.parse(userJSON.messages)
       userJSON.data = JSON.parse(userJSON.data)
 
       return apiResponse(true, userJSON, 'successfully updated a user')
@@ -117,6 +133,21 @@ const userApi = {
       return apiResponse(false, null, 'Fail to update user', error.message)
     }
   },
+  createMessage: async (userId, message) => {
+    try {
+      if (userId === undefined) throw new Error('Missing userId')
+      if (!message.trim()) throw new Error('Missing message')
+
+      await Message.create({
+        userId,
+        message,
+      })
+      return apiResponse(true, { userId, message }, 'successfully create a user')
+    } catch (error) {
+      console.error(error)
+      return apiResponse(false, null, 'Fail to create message', error.message)
+    }
+  }
 }
 
 module.exports = userApi

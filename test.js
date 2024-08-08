@@ -1,4 +1,8 @@
-const array = ['1', '2', '3']
+const userApi = require('./controller/api/userApi')
 
+async function main() {
+  const users = await userApi.getUsers()
+  console.log(users)
+}
 
-console.log(array.indexOf('2'))
+main()

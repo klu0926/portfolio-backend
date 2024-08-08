@@ -26,7 +26,6 @@ class Model {
   getOnlineUsers() {
     this.socket.emit('adminGetOnlineUsers')
   }
-
 }
 
 // View
@@ -104,25 +103,61 @@ class View {
   }
   updateUsersList(onlineUsersObject) {
     const usersDivs = document.querySelectorAll('.user-div')
-    if ('usersDivs:', usersDivs)
+    if (usersDivs && onlineUsersObject) {
+      usersDivs.forEach(userDiv => {
+        const email = userDiv.dataset.userEmail
+        if (!email) {
+          console.log('Can not find userDiv.dataset.userEmail')
+          return
+        }
 
-      if (usersDivs && onlineUsersObject) {
-        usersDivs.forEach(userDiv => {
-          const email = userDiv.dataset.userEmail
-          if (!email) {
-            console.log('Can not find userDiv.dataset.userEmail')
-            return
-          }
+        // update user online status
+        // online
+        if (onlineUsersObject[email]) {
+          userDiv.classList.add('online')
+        } else {
+          userDiv.classList.remove('online')
+        }
+      })
+    }
+  }
+  renderMessagePanel(user) {
+    const name = document.querySelector('#message-panel-name')
+    const email = document.querySelector('#message-panel-email')
+    const panel = document.querySelector('#message-panel-messages')
+    // render info
+    name.innerText = user.name
+    email.innerText = user.email
 
-          // update user online status
-          // online
-          if (onlineUsersObject[email]) {
-            userDiv.classList.add('online')
-          } else {
-            userDiv.classList.remove('online')
-          }
-        })
+    // render messages
+    panel.innerHTML = ''
+
+    user.messages.forEach(messageObject => {
+      const messageOuterDiv = document.createElement('div')
+      messageOuterDiv.classList.add('message-div')
+
+      const messageDiv = document.createElement('div')
+      messageDiv.classList.add('message')
+      messageDiv.innerText = messageObject.message
+
+      const dateSpan = document.createElement('span')
+      dateSpan.classList.add('message-date')
+      dateSpan.innerText = dayjs(messageObject.date).format('MMMM D, YYYY h:mm A')
+
+      // check message from who
+      if (messageObject.from === 'user') {
+        messageOuterDiv.classList.add('message-div-client')
+        messageDiv.classList.add('client-message')
+      } else {
+        messageOuterDiv.classList.add('message-div-server')
+        messageDiv.classList.add('server-message')
       }
+
+      // append
+      messageOuterDiv.appendChild(messageDiv)
+      messageOuterDiv.appendChild(dateSpan)
+      panel.appendChild(messageOuterDiv)
+    })
   }
 }
 
@@ -161,7 +196,7 @@ class Controller {
     const messageSendButton = document.querySelector('#message-send')
 
     messagePanelClose.onclick = this.messagePanelCloseHandler
-    messagePanelWrapper.onclick = this.messagePanelWrapperHandler
+    messagePanelWrapper.onclick = this.messagePanelWrapperClickHandler
     messageSendButton.onclick = this.messagePanelSendButtonHandler
   }
   socketListenerSetup() {
@@ -191,6 +226,9 @@ class Controller {
       }
     })
 
+    // get message
+    socket.on('message', this.onMessage)
+
     // get all users (after login)
     socket.on('adminGetAllUsers', this.onAdminGetallUsers)
 
@@ -199,9 +237,12 @@ class Controller {
 
     // get online users (after user login / disconnect)
     socket.on('onlineUsersUpdate', (onlineUsersObject) => {
-      console.log('------ online users update:', onlineUsersObject)
+      this.onlineUsersObject = onlineUsersObject
       this.onAdminGetOnlineUsers(onlineUsersObject)
+      console.log('online users object:', onlineUsersObject)
     })
+
+
   }
   // Socket Listener functions ===================
   onAdminGetallUsers = (usersArray) => {
@@ -220,6 +261,20 @@ class Controller {
 
     // update users Divs
     this.view.updateUsersList(onlineUsersObject)
+  }
+  onMessage = (messages) => {
+    const email = messages[messages.length - 1].email
+    const user = this.users.find(user => user.email === email)
+
+    // store to local
+    user.messages = messages
+
+    // render latest Message
+    this.view.renderUsersList(this.users, this.userDivOnClickHandler)
+    this.view.updateUsersList(this.onlineUsersObject)
+
+    // render message panel
+    this.view.renderMessagePanel(user)
   }
   // Handlers ======================
   loginHandler = (e) => {
@@ -255,18 +310,32 @@ class Controller {
       sweetAlert.error('Login Fail', err.message)
     }
   }
-  userDivOnClickHandler = () => {
-    // active panel wrapper
-    const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
-    messagePanelWrapper.classList.add('active')
-    // render user div with user messages
-    // .....
+  userDivOnClickHandler = (e) => {
+    try {
+      // find user in local
+      const email = e.currentTarget.dataset.userEmail
+      const currentUser = this.users.find(user => user.email === email)
+      if (!currentUser) throw new Error(`Can not find user with email: ${email}`)
+
+      // render user div with user messages
+      this.view.renderMessagePanel(currentUser)
+
+      // show message panel
+      const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
+      messagePanelWrapper.classList.add('active')
+
+    } catch (err) {
+      sweetAlert.error('Fail to open', err.message)
+    }
+
   }
-  messagePanelWrapperHandler = (e) => {
+  messagePanelWrapperClickHandler = (e) => {
     const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
 
     if (e.target === messagePanelWrapper) {
       messagePanelWrapper.classList.remove('active')
+      // render panel
+      //this.updateMessagePanel(user)
     }
   }
   messagePanelCloseHandler = (e) => {

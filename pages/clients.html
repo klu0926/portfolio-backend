@@ -86,15 +86,20 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
         <div id="message-panel" class="message-panel">
           <div class="message-panel-top">
             <div class="message-panel-title-div">
-              <span class="message-panel-title">Messages</span>
+              <span id="message-panel-name" class="message-panel-name"
+                >lulu</span
+              >
               <div id="message-panel-close" class="message-panel-close">
                 <i class="fa-solid fa-xmark"></i>
               </div>
             </div>
             <div class="message-panel-top-info">
-              <div class="message-panel-client-name">
-                <i class="fa-regular fa-user"></i>
-                <span id="message-panel-name">lulu</span>
+              <div
+                id="message-panel-client-status"
+                class="message-panel-client-status"
+              >
+                <i class="fa-solid fa-wifi"></i>
+                <span>offline</span>
               </div>
               <div class="message-panel-client-email">
                 <i class="fa-regular fa-envelope"></i>
@@ -187,5 +192,9 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
         </div>
       </div>
     </div>
+    <!--footer-->
+    <footer class="footer bg-dark">
+      <a class="text-secondary" href="/logout"> Sign Out </a>
+    </footer>
   </body>
 </html>

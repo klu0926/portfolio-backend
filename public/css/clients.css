@@ -19,6 +19,7 @@ p {
 
 .clients-page-head-top {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -66,8 +67,10 @@ p {
 }
 
 .errorMessage {
+  text-align: center;
   color: red;
   visibility: hidden;
+  margin-top: 5px;
 }
 
 .errorMessage.active {
@@ -98,9 +101,14 @@ p {
   border-radius: 5px;
   background-color: rgb(228, 228, 228);
   border: 1px solid rgb(215, 215, 215);
-  box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 2px 7px 2px rgba(0, 0, 0, 0.1);
   color: grey;
   cursor: pointer;
+  transition: transform 0.1s ease-in-out;
+}
+
+.user-div:hover {
+  transform: scale(1.01);
 }
 
 .user-div.online {
@@ -118,6 +126,15 @@ p {
 }
 
 .user-info {
+  display: flex;
+  gap: 25px;
+}
+
+.user-info-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
 }
 
 .user-name {
@@ -125,31 +142,30 @@ p {
   font-weight: bold;
 }
 
-.text-break {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
 .user-email {
   font-weight: bold;
 }
 
 .user-lastMessage {
+  padding: 2px;
+}
+
+.user-last-date {
+  color: grey;
+  font-size: 0.8rem;
+  margin-top: 10px;
 }
 
 /* user div top right */
 .user-top-right {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: start;
-  gap: 10px;
+  justify-content: center;
   height: 100%;
+  width: 100%;
+  visibility: hidden;
 }
-.user-last-date {
-  color: grey;
-  font-size: 0.8rem;
-}
+
 .user-new-messages-count {
   display: flex;
   justify-content: center;
@@ -204,7 +220,7 @@ p {
   flex-direction: column;
   justify-content: space-between;
   align-items: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .message-panel-title-div {
@@ -213,9 +229,10 @@ p {
   margin-bottom: 5px;
 }
 
-.message-panel-title {
+.message-panel-name {
   font-size: 1.6rem;
   font-weight: bold;
+  margin-left: 5px;
 }
 
 .message-panel-top-info {
@@ -237,6 +254,17 @@ p {
   cursor: pointer;
 }
 
+.message-panel-client-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--secondary);
+}
+
+.message-panel-client-status.online {
+  color: var(--primary);
+}
+
 .message-panel-close:hover {
   background-color: var(--gray);
 }
@@ -247,7 +275,7 @@ p {
   flex-direction: column;
   gap: 10px;
   padding: 15px;
-  background-color: rgb(239, 238, 238);
+  background-color: rgb(234, 234, 234);
   border-radius: 5px;
   margin-bottom: 15px;
   height: 400px;
@@ -273,20 +301,22 @@ p {
 }
 
 .message {
+  position: relative;
   display: inline-block;
   color: white;
   padding: 5px 10px;
   border-radius: 5px;
   margin: 0px;
   font-size: 0.95rem;
-  width: 70%;
+  max-width: 70%;
 }
 
 .server-message {
-  background-color: rgb(19, 112, 241);
+  background-color: var(--primary);
 }
+
 .client-message {
-  background-color: var(--pink);
+  background-color: var(--danger);
 }
 
 .message-date {

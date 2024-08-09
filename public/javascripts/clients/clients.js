@@ -63,9 +63,8 @@ class View {
       const clientsCountSpan = document.querySelector('#all-clients-count')
       clientsCountSpan.innerText = clientsCount
 
-      // online clients count
-      const onlineClientsCountSpan = document.querySelector('#online-clients-count')
-      onlineClientsCountSpan.innerText = '---'
+      // online clients count (count in loop)
+      let onlineClientsCount = 0
 
       // reset usersList
       const usersList = document.querySelector('#users-list')
@@ -79,36 +78,55 @@ class View {
 
         // loop through all users
         for (const [email, user] of Object.entries(usersObject)) {
-
           // create lastMessage
           const lastMessageObject = user.messages[user.messages.length - 1]
           let latestMessage = ''
           let latestDate = ''
           if (lastMessageObject) {
             latestMessage = lastMessageObject.message
-            latestDate = dayjs(lastMessageObject.date).format('MM/DD/YYYY')
+            latestDate = dayjs(lastMessageObject.createdAt).format('MMMM D, YYYY h:mmA')
           }
           // create userDiv
           const userDiv = document.createElement('div')
           userDiv.classList.add('user-div')
           userDiv.dataset.userEmail = user.email
           userDiv.onclick = onClickHandler
+
           // check online
+          let onlineStatusIcon = ''
+          let onlineStatus = ''
           if (user.socketsList.length > 0) {
             userDiv.classList.add('online')
+            onlineClientsCount++
+
+            onlineStatusIcon = `
+             <i class="fa-regular fa-face-smile"></i>
+            `
+            onlineStatus= 'online'
+          } else {
+            onlineStatusIcon = `
+             <i class="fa-regular fa-face-meh"></i>
+            `
           }
+
+
 
           userDiv.innerHTML = `
             <div class='user-top-left'>
-              <p class='user-info'>
-               <span class='user-name'>${user.name}</span>
-                <span class='text-break'>|</span>
-               <span class='user-email'>${user.email}</span>
-              </p>  
+              <div class='user-info'>
+                <div class='user-info-div ${onlineStatus}'>
+                  ${onlineStatusIcon}
+                  <span class='user-name'>${user.name}</span>
+                </div>
+                <div class='user-info-div'>
+                  <i class="fa-regular fa-envelope"></i>
+                  <span class='user-email'>${user.email}</span>
+                </div>
+              </div>  
               <p class='user-lastMessage'>${latestMessage}</p>
+              <span class='user-last-date' class='user-last-date'>${latestDate}</span>
             </div>
            <div class='user-top-right'>
-              <span class='user-last-date'>${latestDate}</span>
               <div class='user-new-messages-count'>
               3
               </div>
@@ -116,11 +134,15 @@ class View {
         `
           usersList.appendChild(userDiv)
         }
-
       } else {
         // hide user list
         usersList.classList.remove('active')
       }
+
+      // online clients count
+      const onlineClientsCountSpan = document.querySelector('#online-clients-count')
+      onlineClientsCountSpan.innerText = onlineClientsCount
+
 
     } catch (err) {
       console.error('Fail to render users list:', err)
@@ -130,11 +152,27 @@ class View {
     const name = document.querySelector('#message-panel-name')
     const email = document.querySelector('#message-panel-email')
     const panel = document.querySelector('#message-panel-messages')
+    const onlineStatus = document.querySelector('#message-panel-client-status')
 
     // set user data to panel
     panel.dataset.userId = user.id
     panel.dataset.email = user.email
     panel.dataset.name = user.name
+
+    // user online status
+    if (user.socketsList.length > 0) {
+      onlineStatus.classList.add('online')
+      onlineStatus.innerHTML = `
+      <i class="fa-regular fa-face-smile"></i>
+      <span>online</span>
+      `
+    } else {
+      onlineStatus.classList.remove('online')
+      onlineStatus.innerHTML = `
+      <i class="fa-regular fa-face-meh"></i>
+      <span>offline</span>
+      `
+    }
 
     // render info
     name.innerText = user.name
@@ -142,6 +180,8 @@ class View {
 
     // render messages
     panel.innerHTML = ''
+
+    console.log('user.messages:', user.messages)
 
     user.messages.forEach(messageObject => {
       const messageOuterDiv = document.createElement('div')
@@ -153,7 +193,7 @@ class View {
 
       const dateSpan = document.createElement('span')
       dateSpan.classList.add('message-date')
-      dateSpan.innerText = dayjs(messageObject.date).format('MMMM D, YYYY h:mm A')
+      dateSpan.innerText = dayjs(messageObject.createdAt).format('MMMM D, YYYY h:mm A')
 
       // check message from who
       if (messageObject.from === 'user') {
@@ -169,7 +209,7 @@ class View {
       messageOuterDiv.appendChild(dateSpan)
       panel.appendChild(messageOuterDiv)
     })
-    
+
     // panel scroll to the bottom
     panel.scrollTop = panel.scrollHeight - panel.clientHeight
   }
@@ -265,6 +305,8 @@ class Controller {
     this.view.renderUsersList(usersObject, this.userDivOnClickHandler)
   }
   onMessage = (messageArray) => {
+    console.log('onMessage:', messageArray)
+
     const userId = messageArray[0].userId
     const user = this.findUserById(userId)
 

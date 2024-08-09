@@ -101,7 +101,7 @@ class SocketController {
         const message = `Login Fail: Missing your ${missingField.join(' , ')}`
         this.sendNewMessage({
           from: 'server',
-          id,
+          userId: id,
           message
         });
         return
@@ -139,11 +139,12 @@ class SocketController {
       // Greet User 
       // if user is first time login, greet the user
       if (user.messages.length === 0) {
-        console.log('send greeting messages to user')
+        console.log(`send greeting messages to user: ${user}`)
+        console.log(user)
         const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
         this.sendNewMessage({
           from: 'lu',
-          id: user.id,
+          userId: user.id,
           message: greeting
         })
       } else {
@@ -193,15 +194,6 @@ class SocketController {
       // remove socket
       user.socketsList.splice(index, 1)
     }
-
-    // if user's sockets are all disconnected
-    // save message to database, and delete user from online list
-    if (user.socketsList.length === 0) {
-      this.usersMap.delete(user.email)
-      // update online users to admin 
-      this.adminGetUsers()
-    }
-
     console.log('logout-----')
   }
   // this is only use by online user, when login
@@ -214,17 +206,19 @@ class SocketController {
       user.socketsList.forEach(socketId => {
         this.io.to(socketId).emit('message', user.messages);
       })
+      console.log('sendOldMessage:', user.messages)
     } catch (err) {
       console.log(err)
     }
   }
   sendNewMessage = (messageObject) => {
     try {
+      console.log('sendNewMessage:', messageObject)
       // add new message
       const { from, userId, message } = messageObject
       const user = this.findUserMapById(userId)
       if (!user) {
-        throw new Error(`User id does not exist: ${userId}`)
+        throw new Error(`User does not exist: ${userId}`)
       }
       // append new messages to this.usersMap
       user.messages = [...user.messages,
@@ -252,6 +246,9 @@ class SocketController {
         userId,
         message
       })
+      
+      console.log('sendNewMessage:', user.messages)
+
     } catch (error) {
       console.log(error)
     }
@@ -266,15 +263,12 @@ class SocketController {
     this.io.to(socket.id).emit('error', message);
   }
   // ADMIN
-  adminGetUsers = async (socket) => {
+  adminGetUsers = async () => {
     try {
-      // check isAdmin
-      const isAdmin = this.isAdmin(socket)
-      if (!isAdmin) return
-
-      // responses
       const users = Object.fromEntries(this.usersMap.entries());
-      this.io.to(socket.id).emit('adminGetUsers', users);
+      this.adminSockets.forEach(socketId => {
+        this.io.to(socketId).emit('adminGetUsers', users);
+      })
 
     } catch (err) {
       console.log(err)
@@ -330,11 +324,13 @@ class SocketController {
       // login
       socket.on('login', (data) => {
         this.onLogin(socket, data);
+        this.adminGetUsers();
       });
 
       // logout
       socket.on('logout', async () => {
-        this.onDisconnect(socket);  // Ensure this is awaited
+        this.onDisconnect(socket);
+        this.adminGetUsers();
       });
 
       // admin login
@@ -354,7 +350,7 @@ class SocketController {
 
       // admin get all users
       socket.on('adminGetUsers', () => {
-        this.adminGetUsers(socket);  // Fixed method name
+        this.adminGetUsers();
       });
 
       // got message

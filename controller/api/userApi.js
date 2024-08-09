@@ -40,7 +40,7 @@ const userApi = {
           as: 'messages',
         }],
       })
-      if (user) {
+      if (!user) {
         throw new Error('Can not find user')
       }
       const userJSON = user.toJSON()
@@ -133,12 +133,15 @@ const userApi = {
       return apiResponse(false, null, 'Fail to update user', error.message)
     }
   },
-  createMessage: async (userId, message) => {
+  createMessage: async (messageObject) => {
     try {
-      if (userId === undefined) throw new Error('Missing userId')
+      const { from, userId, message } = messageObject
+      if (!from) throw new Error('Missing "from" field')
+      if (!userId) throw new Error('Missing userId')
       if (!message.trim()) throw new Error('Missing message')
 
       await Message.create({
+        from,
         userId,
         message,
       })

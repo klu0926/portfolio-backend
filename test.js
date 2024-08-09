@@ -1,8 +1,11 @@
-const userApi = require('./controller/api/userApi')
-
-async function main() {
-  const users = await userApi.getUsers()
-  console.log(users)
+const usersObject = {
+  'emailA': { name: 'lulu' },
+  'emailB': { name: 'pete' },
+  'emailC': { name: 'cho' },
 }
 
-main()
+
+
+for (const [email, user] of Object.entries(usersObject)){
+  console.log(user)
+}

@@ -4,6 +4,14 @@ const bcrypt = require('bcrypt')
 const crypto = require('crypto');
 
 
+// usersMap 
+// email : {
+//   user : {id, name, email, messages, data}
+//   socketsList: []
+// }
+
+// socketEmailMap (socketId : email)
+
 class SocketController {
   constructor(userApi) {
     // set in app.js
@@ -11,10 +19,19 @@ class SocketController {
     this.userApi = userApi
     // temp save for online users
     // email as key
-    this.onlineUsersMap = new Map()
-    this.socketEmailList = new Map()
+    this.usersMap = new Map()
+    this.socketEmailMap = new Map()
     this.adminSockets = []
     this.adminSessionId = ''
+  }
+  findUserMapById(id) {
+    if (this.usersMap.size === 0) return null
+    for (let [email, user] of this.usersMap) {
+      if (Number(user.id) === Number(id)) {
+        return user;
+      }
+    }
+    return null;
   }
   isAdmin = (socket) => {
     if (!this.adminSockets?.find(s => s === socket.id)) {
@@ -72,7 +89,7 @@ class SocketController {
   }
   onLogin = async (socket, userData) => {
     try {
-      const { name, email } = userData
+      const { id, name, email } = userData
 
       // check for user name, email
       const missingField = []
@@ -81,7 +98,12 @@ class SocketController {
         if (!requiredField[key]) missingField.push(key)
       })
       if (missingField.length > 0) {
-        this.messageResponse(socket, `Login Fail: Missing your ${missingField.join(' , ')}`, 'server');
+        const message = `Login Fail: Missing your ${missingField.join(' , ')}`
+        this.sendNewMessage({
+          from: 'server',
+          id,
+          message
+        });
         return
       }
 
@@ -92,60 +114,42 @@ class SocketController {
         throw new Error('Email is not valid')
       }
 
-      // find user in server function
-      const getServerUser = async (email, name) => {
-        let serverResponse = await userApi.getUser(email)
-        let serverUser = null
-        if (serverResponse.ok) {
-          serverUser = serverResponse.data
-        } else {
-          const response = await userApi.createUser({
-            name,
-            email,
-            data: {}
-          })
-          if (!response.ok) {
-            throw new Error(response.error)
-          }
-          serverUser = response.data
-        }
-        return serverUser
-      }
-      // update user
-      const updateUserToOnlineMap = async (email, name, socket) => {
-        // Retrieve or fetch user
-        let user = this.onlineUsersMap.get(email)
-        if (!user) {
-          user = await getServerUser(email, name);
-          user.data = JSON.parse(user.data)
-        }
+      // get user
+      // if user in usersMap
+      let user = this.usersMap.get(email)
 
-        // Update online user
-        this.onlineUsersMap.set(email, {
-          id: user.id,
-          name: user.name,
+      // user doesn't exist, create a user
+      if (!user) {
+        await this.userApi.createUser({
+          name,
           email,
-          messages: user.messages || [],
-          data: user.data || {},
-          socketsList: user.socketsList ? [...user.socketsList, socket.id] : [socket.id],
-        });
-
-        // Log updated user
-        user = this.onlineUsersMap.get(email);
-
-        // update socket list
-        this.socketEmailList.set(socket.id, email)
-        return user
+          messages: []
+        })
+        // fetch new users from server and update usersMap
+        await this.getUsers()
+        user = this.usersMap.get(email)
+        user.socketsList = [socket.id]
+      } else {
+        // existing user
+        user.socketsList = [...user.socketsList, socket.id]
       }
-      // update user in local
-      const user = await updateUserToOnlineMap(email, name, socket)
+      // update socketEmailMap
+      this.socketEmailMap.set(socket.id, user.email)
 
+      // Greet User 
       // if user is first time login, greet the user
       if (user.messages.length === 0) {
+        console.log('send greeting messages to user')
         const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
-        this.messageResponse(socket, greeting, 'lu')
+        this.sendNewMessage({
+          from: 'lu',
+          id: user.id,
+          message: greeting
+        })
       } else {
-        this.messageResponse(socket)
+        // send all messages to user
+        console.log('send all messages to user')
+        this.sendOldMessages(socket)
       }
 
       // emit login response to user
@@ -154,15 +158,13 @@ class SocketController {
         user
       })
 
-      // update online users to admin 
-      this.adminUsersUpdate()
-
+      console.log('login----')
     } catch (err) {
       console.log(err)
       this.errorResponse(socket, err.message)
     }
   }
-  onDisconnect = async (socket, removeSession) => {
+  onDisconnect = (socket, removeSession) => {
     // check ADMIN
     const adminSocketIndex = this.adminSockets.indexOf(socket.id)
     if (adminSocketIndex !== -1) {
@@ -177,14 +179,15 @@ class SocketController {
       return
     }
 
-    // check for USERS
-    // find user online
-    const email = this.socketEmailList.get(socket.id)
-    if (!email) return
-    const user = this.onlineUsersMap.get(email)
-    if (!user) return
-
+    // Check User
     // check if socket exist
+    const user = this.usersMap.get(this.socketEmailMap.get(socket.id))
+    if (!user) {
+      console.log('disconnect, user not in socketEmailMap')
+      return
+    }
+    this.socketEmailMap.delete(socket.id)
+
     const index = user.socketsList?.findIndex(socketId => socketId === socket.id)
     if (index !== -1) {
       // remove socket
@@ -194,158 +197,185 @@ class SocketController {
     // if user's sockets are all disconnected
     // save message to database, and delete user from online list
     if (user.socketsList.length === 0) {
-      this.onlineUsersMap.delete(email)
+      this.usersMap.delete(user.email)
       // update online users to admin 
-      this.adminUsersUpdate()
+      this.adminGetUsers()
+    }
+
+    console.log('logout-----')
+  }
+  // this is only use by online user, when login
+  sendOldMessages = (socket) => {
+    try {
+      const user = this.usersMap.get(this.socketEmailMap.get(socket.id))
+      if (!user) throw new Error('Can not find user')
+
+      // send to all socket for the same user
+      user.socketsList.forEach(socketId => {
+        this.io.to(socketId).emit('message', user.messages);
+      })
+    } catch (err) {
+      console.log(err)
     }
   }
-  messageResponse = (socket, newMessage, from = 'server') => {
-    const email = this.socketEmailList.get(socket.id)
-    const user = this.onlineUsersMap.get(email)
-    if (!user) return
-
-    if (newMessage) {
+  sendNewMessage = (messageObject) => {
+    try {
+      // add new message
+      const { from, userId, message } = messageObject
+      const user = this.findUserMapById(userId)
+      if (!user) {
+        throw new Error(`User id does not exist: ${userId}`)
+      }
+      // append new messages to this.usersMap
       user.messages = [...user.messages,
       {
         from,
-        email,
-        message: newMessage,
-        date: new Date()
+        userId,
+        message
       }
       ]
-    }
-    // send to all socket for the same user
-    user.socketsList.forEach(socketId => {
-      this.io.to(socketId).emit('message', user.messages);
-    })
 
-    // send to all admin sockets
-    this.adminSockets.forEach(socketId => {
-      this.io.to(socketId).emit('message', user.messages);
-    })
+      // Responses
+      // send to all socket for the same user
+      user.socketsList.forEach(socketId => {
+        this.io.to(socketId).emit('message', user.messages);
+      })
+
+      // send to all admin sockets
+      this.adminSockets.forEach(socketId => {
+        this.io.to(socketId).emit('message', user.messages);
+      })
+
+      // store message to database
+      this.userApi.createMessage({
+        from,
+        userId,
+        message
+      })
+    } catch (error) {
+      console.log(error)
+    }
+
   }
   loginResponse = (socket, isLogin = false) => {
     this.io.to(socket.id).emit('login', isLogin);
   }
   errorResponse = (socket, message) => {
     console.log('sending error message:', message)
+    console.log('errorResponse socketId:', socket.id)
     this.io.to(socket.id).emit('error', message);
   }
   // ADMIN
-  adminGetAllUsers = async (socket) => {
+  adminGetUsers = async (socket) => {
     try {
       // check isAdmin
       const isAdmin = this.isAdmin(socket)
-      if (!isAdmin) throw new Error('Please login first')
-
-      // get all users
-      const response = await userApi.getUsers()
-      if (!response.ok) throw new Error(response.error)
-      const users = response.data
+      if (!isAdmin) return
 
       // responses
-      this.io.to(socket.id).emit('adminGetAllUsers', users);
+      const users = Object.fromEntries(this.usersMap.entries());
+      this.io.to(socket.id).emit('adminGetUsers', users);
 
     } catch (err) {
       console.log(err)
       this.errorResponse(socket, `Fail to get all users:`, err.message)
     }
   }
-  adminGetOnlineUsers = (socket) => {
+  // get users from database, and store to local usersMap
+  getUsers = async () => {
     try {
-      // check isAdmin
-      const isAdmin = this.isAdmin(socket)
-      if (!isAdmin) throw new Error('Please login first')
+      // Fetch new user data from the server
+      const responses = await this.userApi.getUsers();
+      const users = responses.data;
 
-      // get all online users
-      const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
+      // Create a new map to hold the updated user data
+      const newUsersMap = new Map();
 
-      // response
-      this.io.to(socket.id).emit('adminGetOnlineUsers', onlineUserObject);
+      // Add or update users in the new map
+      users.forEach(user => {
+        if (this.usersMap.has(user.email)) {
+          const existingUser = this.usersMap.get(user.email);
+          newUsersMap.set(user.email, {
+            ...user,
+            socketsList: existingUser.socketsList
+          }
+          );
+        } else {
+          newUsersMap.set(user.email, {
+            ...user,
+            socketsList: []
+          });
+        }
+      });
+      // replace map
+      this.usersMap = newUsersMap;
     } catch (err) {
-      console.log(err)
-      this.errorResponse(socket, `Fail to get online users:`, err.message)
+      console.error('Failed to get users:', err);
     }
-  }
-  adminUsersUpdate = () => {
-    if (this.adminSockets.length !== 0) {
-      const onlineUserObject = Object.fromEntries(this.onlineUsersMap);
-
-      // send to admin
-      this.adminSockets.forEach(s => {
-        this.io.to(s).emit('onlineUsersUpdate', onlineUserObject);
-      })
-    }
-  }
+  };
   // export init to app.js
-  init = (httpServer, port) => {
+  async init(httpServer, port) {
     // create server
     this.io = new Server(httpServer, {
       cors: {
         origin: port, // Requests are allowed
       }
     });
+
+    // get users
+    await this.getUsers();  // Ensure this is awaited
+
     // on connect
     this.io.on('connection', (socket) => {
-
       // login
       socket.on('login', (data) => {
-        this.onLogin(socket, data)
-      })
+        this.onLogin(socket, data);
+      });
 
       // logout
       socket.on('logout', async () => {
-        this.onDisconnect(socket)
-      })
+        this.onDisconnect(socket);  // Ensure this is awaited
+      });
 
       // admin login
       socket.on('adminLogin', async (data) => {
-        this.onAdminLogin(socket, data)
-      })
+        this.onAdminLogin(socket, data);
+      });
 
       // admin auto sessionId login
       socket.on('adminSessionLogin', (data) => {
-        this.onAdminLogin(socket, data)
-      })
+        this.onAdminLogin(socket, data);
+      });
 
       // admin logout
       socket.on('adminLogout', () => {
-        this.onDisconnect(socket, true)
-      })
+        this.onDisconnect(socket, true);
+      });
 
       // admin get all users
-      socket.on('adminGetAllUsers', () => {
-        this.adminGetAllUsers(socket)
-      })
-
-      // admin get online users
-      socket.on('adminGetOnlineUsers', () => {
-        this.adminGetOnlineUsers(socket)
-      })
+      socket.on('adminGetUsers', () => {
+        this.adminGetUsers(socket);  // Fixed method name
+      });
 
       // got message
       socket.on('message', async (messageObject) => {
         try {
-          console.log('get message:', messageObject)
-          const { from, id, message } = messageObject
-          this.messageResponse(socket, message, from)
-
-          // store message to server
-          this.userApi.createMessage(id, message)
-
+          this.sendNewMessage(messageObject);  // Ensure this is awaited
         } catch (err) {
-          console.error('Fail to get message:', err)
-          this.errorResponse(socket, err.message)
+          console.error('Fail to get message:', err);
+          this.errorResponse(socket, err.message);
         }
-      })
+      });
 
       // Disconnect(no user input)
-      socket.on('disconnect', async () => {
-        this.onDisconnect(socket)
-      })
-    })
+      socket.on('disconnect', () => {
+        this.onDisconnect(socket);  // Ensure this is awaited
+      });
+    });
   }
 }
+
+
 
 const socketController = new SocketController(userApi)
 module.exports = socketController;

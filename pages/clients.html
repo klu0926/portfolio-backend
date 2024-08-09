@@ -105,7 +105,6 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
           </div>
           <!---messages-->
           <div id="message-panel-messages" class="message-panel-messages">
-
             <div class="message-div message-div-server">
               <div class="server-message message">
                 Hi this is lu, nice to meet you!
@@ -119,7 +118,6 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
               </div>
               <span class="message-date">2024/09/26 10:10AM</span>
             </div>
-            
           </div>
           <!--message input / send-->
           <div class="message-panel-bottom">
@@ -140,18 +138,29 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js
       <div class="row d-flex justify-content-center">
         <div id="main" class="col-12 col-lg-9">
           <!--content start-->
-          <div class="clients-title">
-            <h1>Clients</h1>
-            <button
-              id="admin-logout"
-              class="btn btn-danger btn-sm admin-logout"
-            >
-              Logout
-            </button>
+          <div id="clients-page-head" class="clients-page-head">
+            <div class="clients-page-head-top">
+              <h1>Clients</h1>
+              <button
+                id="admin-logout"
+                class="btn btn-danger btn-sm admin-logout"
+              >
+                Logout
+              </button>
+            </div>
+            <div id="clients-info" class="clients-info">
+              <span class="clients-info-span"
+                >All Clients: <span id="all-clients-count">0</span></span
+              >
+              <span class="clients-info-span"
+                >Online: <span id="online-clients-count">0</span></span
+              >
+            </div>
           </div>
           <!-- admin login -->
           <div id="login-control" class="login-control active">
-            <form class="input-group">
+            <h1>Clients</h1>
+            <form class="login-form">
               <input
                 id="name"
                 class="form-control col-4"

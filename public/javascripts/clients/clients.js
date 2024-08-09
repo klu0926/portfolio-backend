@@ -21,10 +21,7 @@ class Model {
     this.socket.emit('adminLogin', { name, password })
   }
   getAllUsers() {
-    this.socket.emit('adminGetAllUsers')
-  }
-  getOnlineUsers() {
-    this.socket.emit('adminGetOnlineUsers')
+    this.socket.emit('adminGetUsers')
   }
 }
 
@@ -41,90 +38,104 @@ class View {
     messageSpan.innerText = message
     messageSpan.classList.add('active')
   }
-  toggleLoginInputs(isLogin) {
+  renderLoginHeader(isLogin) {
     const loginControl = document.querySelector('#login-control')
-    const logoutBtn = document.querySelector('#admin-logout')
+    const clientsPageHead = document.querySelector('#clients-page-head')
 
     if (isLogin) {
       this.renderMessage('')
       loginControl.classList.remove('active')
-      logoutBtn.classList.add('active')
+      clientsPageHead.classList.add('active')
     } else {
       loginControl.classList.add('active')
-      logoutBtn.classList.remove('active')
+      clientsPageHead.classList.remove('active')
     }
   }
-  renderUsersList(usersArray, onClickHandler) {
-    const usersList = document.querySelector('#users-list')
-    usersList.innerHTML = ''
-
-    // show usersList
-    if (usersArray) {
-      if (!usersList.classList.contains('active')) {
-        usersList.classList.add('active')
+  renderUsersList(usersObject, onClickHandler) {
+    try {
+      if (!usersObject) {
+        throw new Error('Missing usersObject')
       }
+      console.log('usersObject:', usersObject)
 
-      // loop through all users
-      usersArray.forEach(user => {
-        const messages = user.messages
-        const lastMessageObject = messages[messages.length - 1]
-        let lastDate = null
-        if (lastMessageObject?.date) {
-          lastDate = dayjs(lastMessageObject.date).format('MM/DD/YYYY')
+      // clients count
+      const clientsCount = Object.keys(usersObject).length || 0
+      const clientsCountSpan = document.querySelector('#all-clients-count')
+      clientsCountSpan.innerText = clientsCount
+
+      // online clients count
+      const onlineClientsCountSpan = document.querySelector('#online-clients-count')
+      onlineClientsCountSpan.innerText = '---'
+
+      // reset usersList
+      const usersList = document.querySelector('#users-list')
+      usersList.innerHTML = ''
+
+      // show usersList
+      if (clientsCount) {
+        if (!usersList.classList.contains('active')) {
+          usersList.classList.add('active')
         }
 
-        const userDiv = document.createElement('div')
-        userDiv.classList.add('user-div')
-        userDiv.dataset.userEmail = user.email
-        userDiv.onclick = onClickHandler
+        // loop through all users
+        for (const [email, user] of Object.entries(usersObject)) {
 
-        userDiv.innerHTML = `
+          // create lastMessage
+          const lastMessageObject = user.messages[user.messages.length - 1]
+          let latestMessage = ''
+          let latestDate = ''
+          if (lastMessageObject) {
+            latestMessage = lastMessageObject.message
+            latestDate = dayjs(lastMessageObject.date).format('MM/DD/YYYY')
+          }
+          // create userDiv
+          const userDiv = document.createElement('div')
+          userDiv.classList.add('user-div')
+          userDiv.dataset.userEmail = user.email
+          userDiv.onclick = onClickHandler
+          // check online
+          if (user.socketsList.length > 0) {
+            userDiv.classList.add('online')
+          }
+
+          userDiv.innerHTML = `
             <div class='user-top-left'>
               <p class='user-info'>
                <span class='user-name'>${user.name}</span>
                 <span class='text-break'>|</span>
                <span class='user-email'>${user.email}</span>
               </p>  
-              <p class='user-lastMessage'>${lastMessageObject.message}</p>
+              <p class='user-lastMessage'>${latestMessage}</p>
             </div>
            <div class='user-top-right'>
-              <span class='user-last-date'>${lastDate}</span>
+              <span class='user-last-date'>${latestDate}</span>
               <div class='user-new-messages-count'>
               3
               </div>
             </div>
         `
-        usersList.appendChild(userDiv)
-      })
-    } else {
-      // hide user list
-      usersList.classList.remove('active')
-    }
-  }
-  updateUsersList(onlineUsersObject) {
-    const usersDivs = document.querySelectorAll('.user-div')
-    if (usersDivs && onlineUsersObject) {
-      usersDivs.forEach(userDiv => {
-        const email = userDiv.dataset.userEmail
-        if (!email) {
-          console.log('Can not find userDiv.dataset.userEmail')
-          return
+          usersList.appendChild(userDiv)
         }
 
-        // update user online status
-        // online
-        if (onlineUsersObject[email]) {
-          userDiv.classList.add('online')
-        } else {
-          userDiv.classList.remove('online')
-        }
-      })
+      } else {
+        // hide user list
+        usersList.classList.remove('active')
+      }
+
+    } catch (err) {
+      console.error('Fail to render users list:', err)
     }
   }
   renderMessagePanel(user) {
     const name = document.querySelector('#message-panel-name')
     const email = document.querySelector('#message-panel-email')
     const panel = document.querySelector('#message-panel-messages')
+
+    // set user data to panel
+    panel.dataset.userId = user.id
+    panel.dataset.email = user.email
+    panel.dataset.name = user.name
+
     // render info
     name.innerText = user.name
     email.innerText = user.email
@@ -158,6 +169,9 @@ class View {
       messageOuterDiv.appendChild(dateSpan)
       panel.appendChild(messageOuterDiv)
     })
+    
+    // panel scroll to the bottom
+    panel.scrollTop = panel.scrollHeight - panel.clientHeight
   }
 }
 
@@ -167,7 +181,7 @@ class Controller {
     this.model = model
     this.view = view
     this.isLogin = false
-    this.users = []
+    this.usersObject = {}
     this.onlineUsersObject = null
   }
   init() {
@@ -179,6 +193,16 @@ class Controller {
     // try to auto login with sessionId
     this.adminSessionLoginHandler()
 
+  }
+  findUserById(id) {
+    console.log(`find user by id : ${id}`)
+    if (Object.keys(this.usersObject).length === 0) return null
+    for (let [email, user] of Object.entries(this.usersObject)) {
+      if (Number(user.id) === Number(id)) {
+        return user;
+      }
+    }
+    return null;
   }
   // Setups ===================================
   listenerSetup() {
@@ -214,7 +238,7 @@ class Controller {
         const adminSessionId = data.adminSessionId
         if (login) {
           // hide login input
-          this.view.toggleLoginInputs(true)
+          this.view.renderLoginHeader(true)
 
           // get all users
           this.model.getAllUsers()
@@ -230,48 +254,25 @@ class Controller {
     socket.on('message', this.onMessage)
 
     // get all users (after login)
-    socket.on('adminGetAllUsers', this.onAdminGetallUsers)
-
-    // get online users (after login)
-    socket.on('adminGetOnlineUsers', this.onAdminGetOnlineUsers)
-
-    // get online users (after user login / disconnect)
-    socket.on('onlineUsersUpdate', (onlineUsersObject) => {
-      this.onlineUsersObject = onlineUsersObject
-      this.onAdminGetOnlineUsers(onlineUsersObject)
-      console.log('online users object:', onlineUsersObject)
-    })
-
-
+    socket.on('adminGetUsers', this.onAdminGetUsers)
   }
   // Socket Listener functions ===================
-  onAdminGetallUsers = (usersArray) => {
+  onAdminGetUsers = (usersObject) => {
     // store users
-    this.users = usersArray
+    this.usersObject = usersObject
 
     // render users list
-    this.view.renderUsersList(usersArray, this.userDivOnClickHandler)
-
-    // get online users (auto trigger view user list update)
-    this.model.getOnlineUsers()
+    this.view.renderUsersList(usersObject, this.userDivOnClickHandler)
   }
-  onAdminGetOnlineUsers = (onlineUsersObject) => {
-    // store online users
-    this.onlineUsersObject = this.onlineUsersObject
-
-    // update users Divs
-    this.view.updateUsersList(onlineUsersObject)
-  }
-  onMessage = (messages) => {
-    const email = messages[messages.length - 1].email
-    const user = this.users.find(user => user.email === email)
+  onMessage = (messageArray) => {
+    const userId = messageArray[0].userId
+    const user = this.findUserById(userId)
 
     // store to local
-    user.messages = messages
+    user.messages = messageArray
 
     // render latest Message
-    this.view.renderUsersList(this.users, this.userDivOnClickHandler)
-    this.view.updateUsersList(this.onlineUsersObject)
+    this.view.renderUsersList(this.usersObject, this.userDivOnClickHandler)
 
     // render message panel
     this.view.renderMessagePanel(user)
@@ -296,7 +297,7 @@ class Controller {
     this.model.socket.emit('adminLogout')
 
     this.view.renderUsersList(null)
-    this.view.toggleLoginInputs(false)
+    this.view.renderLoginHeader(false)
   }
   adminSessionLoginHandler = () => {
     try {
@@ -314,7 +315,8 @@ class Controller {
     try {
       // find user in local
       const email = e.currentTarget.dataset.userEmail
-      const currentUser = this.users.find(user => user.email === email)
+      const currentUser = this.usersObject[email]
+
       if (!currentUser) throw new Error(`Can not find user with email: ${email}`)
 
       // render user div with user messages
@@ -325,6 +327,7 @@ class Controller {
       messagePanelWrapper.classList.add('active')
 
     } catch (err) {
+      console.error(err)
       sweetAlert.error('Fail to open', err.message)
     }
 
@@ -344,10 +347,22 @@ class Controller {
   }
   messagePanelSendButtonHandler = (e) => {
     e.preventDefault()
+    const panel = document.querySelector('#message-panel-messages')
+    const userId = panel.dataset.userId
+
     const messageInput = document.querySelector('#message-input')
     const message = messageInput.value
     if (message.trim() === '') return
-    console.log(`send message: ${messageInput.value}`)
+    // clear message input
+    messageInput.value = ''
+
+    // emit
+    this.model.socket.emit('message', {
+      from: 'lu',
+      userId,
+      message,
+    })
+
   }
 }
 

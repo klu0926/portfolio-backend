@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const userApi = require('../controller/api/userApi')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto');
+const { create } = require('domain');
 
 
 // usersMap 
@@ -88,6 +89,7 @@ class SocketController {
     }
   }
   onLogin = async (socket, userData) => {
+    console.log('onLogin')
     try {
       const { id, name, email } = userData
 
@@ -102,7 +104,7 @@ class SocketController {
         this.sendNewMessage({
           from: 'server',
           userId: id,
-          message
+          message,
         });
         return
       }
@@ -159,7 +161,8 @@ class SocketController {
         user
       })
 
-      console.log('login----')
+      // send admin users
+      this.adminGetUsers()
     } catch (err) {
       console.log(err)
       this.errorResponse(socket, err.message)
@@ -194,7 +197,8 @@ class SocketController {
       // remove socket
       user.socketsList.splice(index, 1)
     }
-    console.log('logout-----')
+    // send admin users
+    this.adminGetUsers()
   }
   // this is only use by online user, when login
   sendOldMessages = (socket) => {
@@ -215,7 +219,7 @@ class SocketController {
     try {
       console.log('sendNewMessage:', messageObject)
       // add new message
-      const { from, userId, message } = messageObject
+      const { from, userId, message, createdAt = new Date() } = messageObject
       const user = this.findUserMapById(userId)
       if (!user) {
         throw new Error(`User does not exist: ${userId}`)
@@ -225,7 +229,8 @@ class SocketController {
       {
         from,
         userId,
-        message
+        message,
+        createdAt,
       }
       ]
 
@@ -244,9 +249,10 @@ class SocketController {
       this.userApi.createMessage({
         from,
         userId,
-        message
+        message,
+        createdAt,
       })
-      
+
       console.log('sendNewMessage:', user.messages)
 
     } catch (error) {
@@ -255,6 +261,7 @@ class SocketController {
 
   }
   loginResponse = (socket, isLogin = false) => {
+    console.log('loginResponse')
     this.io.to(socket.id).emit('login', isLogin);
   }
   errorResponse = (socket, message) => {
@@ -264,6 +271,7 @@ class SocketController {
   }
   // ADMIN
   adminGetUsers = async () => {
+    console.log('adminGetUsers')
     try {
       const users = Object.fromEntries(this.usersMap.entries());
       this.adminSockets.forEach(socketId => {
@@ -324,13 +332,11 @@ class SocketController {
       // login
       socket.on('login', (data) => {
         this.onLogin(socket, data);
-        this.adminGetUsers();
       });
 
       // logout
       socket.on('logout', async () => {
         this.onDisconnect(socket);
-        this.adminGetUsers();
       });
 
       // admin login

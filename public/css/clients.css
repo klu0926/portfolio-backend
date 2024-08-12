@@ -79,7 +79,7 @@ p {
 }
 
 /* users list */
-.usersList {
+.users-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -87,17 +87,16 @@ p {
   margin-top: 15px;
 }
 
-.usersList.active {
+.users-list.active {
   visibility: visible;
 }
 
 /* user div */
 .user-div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 10px 20px;
   border-radius: 5px;
   background-color: rgb(228, 228, 228);
   border: 1px solid rgb(215, 215, 215);
@@ -118,11 +117,12 @@ p {
 
 /* user div top left */
 .user-top-left {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: start;
-  height: 100%;
   gap: 4px;
+  width: calc(90%);
 }
 
 .user-info {
@@ -147,23 +147,24 @@ p {
 }
 
 .user-lastMessage {
-  padding: 2px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-last-date {
   color: grey;
   font-size: 0.8rem;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 /* user div top right */
 .user-top-right {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
-  visibility: hidden;
 }
 
 .user-new-messages-count {
@@ -171,10 +172,11 @@ p {
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  background-color: rgb(169, 167, 167);
+  background-color: var(--primary);
   color: white;
   width: 30px;
   height: 30px;
+  font-size: 0.9rem;
 }
 
 .online .user-new-messages-count {

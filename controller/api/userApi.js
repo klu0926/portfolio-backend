@@ -135,7 +135,7 @@ const userApi = {
   },
   createMessage: async (messageObject) => {
     try {
-      const { from, userId, message } = messageObject
+      const { from, userId, message, createdAt } = messageObject
       if (!from) throw new Error('Missing "from" field')
       if (!userId) throw new Error('Missing userId')
       if (!message.trim()) throw new Error('Missing message')
@@ -144,6 +144,7 @@ const userApi = {
         from,
         userId,
         message,
+        createdAt,
       })
       return apiResponse(true, { userId, message }, 'successfully create a user')
     } catch (error) {

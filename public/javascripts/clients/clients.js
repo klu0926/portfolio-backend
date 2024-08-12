@@ -1,3 +1,4 @@
+import e from 'cors';
 import sweetAlert from '../helper/sweetAlert.js'
 import dayjs from 'dayjs'
 
@@ -38,25 +39,15 @@ class View {
     messageSpan.innerText = message
     messageSpan.classList.add('active')
   }
-  renderLoginHeader(isLogin) {
+  renderHeader(usersObject) {
+    console.log('renderHeader:', usersObject)
     const loginControl = document.querySelector('#login-control')
     const clientsPageHead = document.querySelector('#clients-page-head')
 
-    if (isLogin) {
+    if (usersObject) {
       this.renderMessage('')
       loginControl.classList.remove('active')
       clientsPageHead.classList.add('active')
-    } else {
-      loginControl.classList.add('active')
-      clientsPageHead.classList.remove('active')
-    }
-  }
-  renderUsersList(usersObject, onClickHandler) {
-    try {
-      if (!usersObject) {
-        throw new Error('Missing usersObject')
-      }
-      console.log('usersObject:', usersObject)
 
       // clients count
       const clientsCount = Object.keys(usersObject).length || 0
@@ -65,88 +56,131 @@ class View {
 
       // online clients count (count in loop)
       let onlineClientsCount = 0
-
-      // reset usersList
-      const usersList = document.querySelector('#users-list')
-      usersList.innerHTML = ''
-
-      // show usersList
-      if (clientsCount) {
-        if (!usersList.classList.contains('active')) {
-          usersList.classList.add('active')
-        }
-
-        // loop through all users
-        for (const [email, user] of Object.entries(usersObject)) {
-          // create lastMessage
-          const lastMessageObject = user.messages[user.messages.length - 1]
-          let latestMessage = ''
-          let latestDate = ''
-          if (lastMessageObject) {
-            latestMessage = lastMessageObject.message
-            latestDate = dayjs(lastMessageObject.createdAt).format('MMMM D, YYYY h:mmA')
-          }
-          // create userDiv
-          const userDiv = document.createElement('div')
-          userDiv.classList.add('user-div')
-          userDiv.dataset.userEmail = user.email
-          userDiv.onclick = onClickHandler
-
-          // check online
-          let onlineStatusIcon = ''
-          let onlineStatus = ''
-          if (user.socketsList.length > 0) {
-            userDiv.classList.add('online')
-            onlineClientsCount++
-
-            onlineStatusIcon = `
-             <i class="fa-regular fa-face-smile"></i>
-            `
-            onlineStatus= 'online'
-          } else {
-            onlineStatusIcon = `
-             <i class="fa-regular fa-face-meh"></i>
-            `
-          }
-
-
-
-          userDiv.innerHTML = `
-            <div class='user-top-left'>
-              <div class='user-info'>
-                <div class='user-info-div ${onlineStatus}'>
-                  ${onlineStatusIcon}
-                  <span class='user-name'>${user.name}</span>
-                </div>
-                <div class='user-info-div'>
-                  <i class="fa-regular fa-envelope"></i>
-                  <span class='user-email'>${user.email}</span>
-                </div>
-              </div>  
-              <p class='user-lastMessage'>${latestMessage}</p>
-              <span class='user-last-date' class='user-last-date'>${latestDate}</span>
-            </div>
-           <div class='user-top-right'>
-              <div class='user-new-messages-count'>
-              3
-              </div>
-            </div>
-        `
-          usersList.appendChild(userDiv)
-        }
-      } else {
-        // hide user list
-        usersList.classList.remove('active')
-      }
-
-      // online clients count
       const onlineClientsCountSpan = document.querySelector('#online-clients-count')
+      // count online player
+      if (Object.keys(usersObject).length > 0) {
+        Object.keys(usersObject).forEach(email => {
+          if (usersObject[email].socketsList?.length > 0) {
+            onlineClientsCount++
+          }
+        })
+      }
       onlineClientsCountSpan.innerText = onlineClientsCount
 
+    } else {
+      loginControl.classList.add('active')
+      clientsPageHead.classList.remove('active')
+    }
+  }
+  renderUsersList(usersObject, lastReadTimeObject, onClickHandler) {
+    console.log('usersObject:', usersObject)
+    try {
+      // Reset usersList
+      const usersList = document.querySelector('#users-list');
+      usersList.innerHTML = '';
+
+      if (!usersObject) {
+        return; // Early return if no usersObject is provided
+      }
+
+      // Sort usersObject for online users to show first
+      const usersArray = [];
+      Object.keys(usersObject).forEach(email => {
+        const user = usersObject[email];
+        // If user is online, move to the beginning of the array
+        if (user.socketsList?.length > 0) {
+          usersArray.unshift(user);
+        } else {
+          usersArray.push(user);
+        }
+      });
+
+      // Show usersList if there are users
+      if (usersArray.length > 0) {
+        usersList.classList.add('active');
+      } else {
+        usersList.classList.remove('active'); // Hide if no users
+      }
+
+      usersArray.forEach(user => {
+        console.log('user:', user.name)
+
+        // render last message
+        const lastMessageObject = user.messages[user.messages.length - 1];
+        let latestMessage = '';
+        let latestDate = '';
+
+        if (lastMessageObject) {
+          latestMessage = lastMessageObject.message;
+          latestDate = dayjs(lastMessageObject.createdAt).format('MMMM D, YYYY h:mmA');
+        }
+
+        // Create userDiv
+        const userDiv = document.createElement('div');
+        userDiv.classList.add('user-div');
+        userDiv.dataset.userEmail = user.email;
+        userDiv.id = `user-div-${user.id}`
+        userDiv.onclick = onClickHandler;
+
+        // Check online status
+        let onlineStatusIcon = `<i class="fa-regular fa-face-meh"></i>`;
+        let onlineStatus = '';
+
+        if (user.socketsList.length > 0) {
+          userDiv.classList.add('online');
+          onlineStatusIcon = `<i class="fa-regular fa-face-smile"></i>`;
+          onlineStatus = 'online';
+        }
+
+        // Set innerHTML for userDiv
+        userDiv.innerHTML = `
+        <div class='user-top-left'>
+          <div class='user-info'>
+            <div class='user-info-div ${onlineStatus}'>
+              ${onlineStatusIcon}
+              <span class='user-name'>${user.name}</span>
+            </div>
+            <div class='user-info-div'>
+              <i class="fa-regular fa-envelope"></i>
+              <span class='user-email'>${user.email}</span>
+            </div>
+          </div>  
+            <p class='user-lastMessage'>${latestMessage}</p>
+          <span class='user-last-date'>${latestDate}</span>
+        </div>
+        <div class='user-top-right'>
+          <div  class='user-new-messages-count'></div>
+        </div>
+      `;
+
+        usersList.appendChild(userDiv);
+
+        // update new messages count
+        this.updateNewMessageCount(user, lastReadTimeObject)
+      });
 
     } catch (err) {
-      console.error('Fail to render users list:', err)
+      console.error('Failed to render users list:', err);
     }
+  }
+  updateNewMessageCount(user, lastReadTimeObject) {
+    const userDiv = document.querySelector(`#user-div-${user.id}`)
+    const newMessage = userDiv.querySelector('.user-new-messages-count')
+
+    // filter only user messages
+    const userMessages = user.messages.filter(messageObject => messageObject.from === 'user')
+    let unreadMessageCount = userMessages.length
+    const lastReadString = lastReadTimeObject ? lastReadTimeObject[user.id] : null
+    if (lastReadString) {
+      const lastReadDate = new Date(lastReadString)
+      userMessages.forEach(messageObject => {
+        const isAfter = dayjs(lastReadDate).isAfter(messageObject.createdAt)
+        if (isAfter) {
+          unreadMessageCount--
+        }
+      })
+    }
+    newMessage.innerText = unreadMessageCount
   }
   renderMessagePanel(user) {
     const name = document.querySelector('#message-panel-name')
@@ -180,8 +214,6 @@ class View {
 
     // render messages
     panel.innerHTML = ''
-
-    console.log('user.messages:', user.messages)
 
     user.messages.forEach(messageObject => {
       const messageOuterDiv = document.createElement('div')
@@ -223,6 +255,7 @@ class Controller {
     this.isLogin = false
     this.usersObject = {}
     this.onlineUsersObject = null
+    this.lastReadTime = null
   }
   init() {
     // socket server connect
@@ -235,7 +268,6 @@ class Controller {
 
   }
   findUserById(id) {
-    console.log(`find user by id : ${id}`)
     if (Object.keys(this.usersObject).length === 0) return null
     for (let [email, user] of Object.entries(this.usersObject)) {
       if (Number(user.id) === Number(id)) {
@@ -277,9 +309,6 @@ class Controller {
         const login = data.login
         const adminSessionId = data.adminSessionId
         if (login) {
-          // hide login input
-          this.view.renderLoginHeader(true)
-
           // get all users
           this.model.getAllUsers()
 
@@ -296,13 +325,45 @@ class Controller {
     // get all users (after login)
     socket.on('adminGetUsers', this.onAdminGetUsers)
   }
+  setLastReadTime(userId) {
+    try {
+      if (!userId) throw new Error('Missing userId')
+
+      let lastRead = {}
+      // get old object
+      let oldLastReadObject = localStorage.getItem('lastReadObject')
+      if (oldLastReadObject) {
+        lastRead = JSON.parse(oldLastReadObject)
+      }
+      lastRead[String(userId)] = new Date().toISOString()
+
+      localStorage.setItem('lastReadObject', JSON.stringify(lastRead))
+      console.log('Set lastRead:', lastRead)
+    } catch (err) {
+      sweetAlert.error('Fail set read time', err.message)
+    }
+  }
+  getLastReadTime() {
+    let lastRead = localStorage.getItem('lastReadObject') || {}
+    if (typeof lastRead === 'string') {
+      lastRead = JSON.parse(lastRead)
+    }
+    console.log('Get lastRead:', lastRead)
+    return lastRead
+  }
   // Socket Listener functions ===================
   onAdminGetUsers = (usersObject) => {
     // store users
     this.usersObject = usersObject
 
+    // get lastReadTime
+    this.lastReadTime = this.getLastReadTime()
+
     // render users list
-    this.view.renderUsersList(usersObject, this.userDivOnClickHandler)
+    this.view.renderUsersList(usersObject, this.lastReadTime, this.userDivOnClickHandler)
+
+    // render header (user count)
+    this.view.renderHeader(this.usersObject)
   }
   onMessage = (messageArray) => {
     console.log('onMessage:', messageArray)
@@ -313,8 +374,11 @@ class Controller {
     // store to local
     user.messages = messageArray
 
+    // get lastReadTime
+    this.lastReadTime = this.getLastReadTime()
+
     // render latest Message
-    this.view.renderUsersList(this.usersObject, this.userDivOnClickHandler)
+    this.view.renderUsersList(this.usersObject, this.lastReadTime, this.userDivOnClickHandler)
 
     // render message panel
     this.view.renderMessagePanel(user)
@@ -339,7 +403,7 @@ class Controller {
     this.model.socket.emit('adminLogout')
 
     this.view.renderUsersList(null)
-    this.view.renderLoginHeader(false)
+    this.view.renderHeader(null)
   }
   adminSessionLoginHandler = () => {
     try {
@@ -367,6 +431,12 @@ class Controller {
       // show message panel
       const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
       messagePanelWrapper.classList.add('active')
+
+      // record read time
+      this.setLastReadTime(currentUser.id)
+
+      // update new message count
+      this.view.updateNewMessageCount(currentUser, this.getLastReadTime())
 
     } catch (err) {
       console.error(err)

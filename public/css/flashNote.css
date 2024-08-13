@@ -1,0 +1,38 @@
+.flashNote {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateY(0%) translateX(-50%);
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: var(--primary);
+  color: white;
+  text-align: center;
+  min-width: 400px;
+  max-width: 70%;
+  z-index: 100;
+  box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.4);
+  animation: flashNote 0.5s ease-in-out;
+}
+
+.flashNote.note-blue {
+  background-color: var(--primary);
+}
+
+.flashNote.note-red {
+  background-color: var(--danger);
+}
+
+.flashNote.note-orange {
+  background-color: orange;
+}
+
+@keyframes flashNote {
+  from {
+    transform: translateY(20%) translateX(-50%);
+  }
+  to {
+    transform: translateY(0%) translateX(-50%);
+  }
+}

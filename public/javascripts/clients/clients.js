@@ -1,5 +1,6 @@
 import sweetAlert from '../helper/sweetAlert.js'
 import dayjs from 'dayjs'
+import flashNote from '../helper/flashNote.js';
 
 // Model
 class Model {
@@ -39,7 +40,6 @@ class View {
     messageSpan.classList.add('active')
   }
   renderHeader(usersObject) {
-    console.log('renderHeader:', usersObject)
     const loginControl = document.querySelector('#login-control')
     const clientsPageHead = document.querySelector('#clients-page-head')
 
@@ -72,7 +72,6 @@ class View {
     }
   }
   renderUsersList(usersObject, lastReadTimeObject, onClickHandler) {
-    console.log('usersObject:', usersObject)
     try {
       // Reset usersList
       const usersList = document.querySelector('#users-list');
@@ -102,8 +101,6 @@ class View {
       }
 
       usersArray.forEach(user => {
-        console.log('user:', user.name)
-
         // render last message
         const lastMessageObject = user.messages[user.messages.length - 1];
         let latestMessage = '';
@@ -182,6 +179,7 @@ class View {
     newMessage.innerText = unreadMessageCount
   }
   renderMessagePanel(user) {
+
     const name = document.querySelector('#message-panel-name')
     const email = document.querySelector('#message-panel-email')
     const panel = document.querySelector('#message-panel-messages')
@@ -252,7 +250,7 @@ class Controller {
     this.model = model
     this.view = view
     this.isLogin = false
-    this.usersObject = {}
+    this.usersObject = null
     this.onlineUsersObject = null
     this.lastReadTime = null
     this.currentChatUserId = null
@@ -338,7 +336,6 @@ class Controller {
       lastRead[String(userId)] = new Date().toISOString()
 
       localStorage.setItem('lastReadObject', JSON.stringify(lastRead))
-      console.log('Set lastRead:', lastRead)
     } catch (err) {
       sweetAlert.error('Fail set read time', err.message)
     }
@@ -348,26 +345,71 @@ class Controller {
     if (typeof lastRead === 'string') {
       lastRead = JSON.parse(lastRead)
     }
-    console.log('Get lastRead:', lastRead)
     return lastRead
   }
   // Socket Listener functions ===================
-  onAdminGetUsers = (usersObject) => {
+  onAdminGetUsers = (newUsersObject) => {
+    console.log('newUsersObject:', newUsersObject)
+    // check user login / logout
+    if (this.usersObject && newUsersObject) {
+      const newLoginUsers = []
+      const newLogoutUsers = []
+      const newCreatedUsers = []
+      Object.keys(newUsersObject).forEach(email => {
+        const newUser = newUsersObject[email]
+        const oldUser = this.usersObject[email]
+        // new user created
+        if (!oldUser) {
+          // push new user to the list
+          newCreatedUsers.push(newUser)
+        } else {
+          // user login
+          if (oldUser.socketsList.length === 0 && newUser.socketsList.length > 0) {
+            newLoginUsers.push(newUser)
+          }
+          // user logout
+          if (oldUser.socketsList.length > 0 && newUser.socketsList.length === 0) {
+            newLogoutUsers.push(newUser)
+          }
+        }
+      })
+
+      // show flash messages
+      const flashMessages = []
+      newLoginUsers.forEach(user => {
+        flashMessages.push({
+          message: `${user.name} has login`,
+          color: 'blue'
+        })
+      })
+      newLogoutUsers.forEach(user => {
+        flashMessages.push({
+          message: `${user.name} has logout`,
+          color: 'red'
+        })
+      })
+      newCreatedUsers.forEach(user => {
+        flashMessages.push({
+          message: `${user.name} created a new account`,
+          color: 'orange'
+        })
+      })
+      flashNote.bulkInsert(flashMessages)
+    }
+
     // store users
-    this.usersObject = usersObject
+    this.usersObject = newUsersObject
 
     // get lastReadTime
     this.lastReadTime = this.getLastReadTime()
 
     // render users list
-    this.view.renderUsersList(usersObject, this.lastReadTime, this.userDivOnClickHandler)
+    this.view.renderUsersList(newUsersObject, this.lastReadTime, this.userDivOnClickHandler)
 
     // render header (user count)
     this.view.renderHeader(this.usersObject)
   }
   onMessage = (messageArray) => {
-    console.log('onMessage:', messageArray)
-
     const userId = messageArray[0].userId
     const user = this.findUserById(userId)
 

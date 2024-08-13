@@ -89,7 +89,6 @@ class SocketController {
     }
   }
   onLogin = async (socket, userData) => {
-    console.log('onLogin')
     try {
       const { id, name, email } = userData
 
@@ -138,23 +137,6 @@ class SocketController {
       // update socketEmailMap
       this.socketEmailMap.set(socket.id, user.email)
 
-      // Greet User 
-      // if user is first time login, greet the user
-      if (user.messages.length === 0) {
-        console.log(`send greeting messages to user: ${user}`)
-        console.log(user)
-        const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
-        this.sendNewMessage({
-          from: 'lu',
-          userId: user.id,
-          message: greeting
-        })
-      } else {
-        // send all messages to user
-        console.log('send all messages to user')
-        this.sendOldMessages(socket)
-      }
-
       // emit login response to user
       this.loginResponse(socket, {
         login: true,
@@ -163,22 +145,35 @@ class SocketController {
 
       // send admin users
       this.adminGetUsers()
+
+      // Greet User (after server get new userList from this.adminGetUsers)
+      // if user is first time login, greet the user
+      if (user.messages.length === 0) {
+        const greeting = `Hi ${name}, enjoy your stay! Drop me a message anytime, and I'll get back to you as soon as I can.`
+        this.sendNewMessage({
+          from: 'lu',
+          userId: user.id,
+          message: greeting
+        })
+      } else {
+        // send all messages to user
+        this.sendOldMessages(socket)
+      }
     } catch (err) {
       console.log(err)
       this.errorResponse(socket, err.message)
     }
   }
-  onDisconnect = (socket, removeSession) => {
+  onDisconnect = (socket, removeAdminSession = false) => {
     // check ADMIN
     const adminSocketIndex = this.adminSockets.indexOf(socket.id)
     if (adminSocketIndex !== -1) {
       // remove admin socket
       this.adminSockets.splice(adminSocketIndex, 1)
 
-      if (removeSession) {
+      if (removeAdminSession) {
         // remove admin session
         this.adminSessionId = ''
-        console.log('remove adminSession:', this.adminSockets)
       }
       return
     }
@@ -186,16 +181,22 @@ class SocketController {
     // Check User
     // check if socket exist
     const user = this.usersMap.get(this.socketEmailMap.get(socket.id))
-    if (!user) {
-      console.log('disconnect, user not in socketEmailMap')
-      return
-    }
+
+    // user not in current map, return
+    if (!user) return
+
     this.socketEmailMap.delete(socket.id)
 
     const index = user.socketsList?.findIndex(socketId => socketId === socket.id)
     if (index !== -1) {
-      // remove socket
-      user.socketsList.splice(index, 1)
+      // remove socket after delay
+      // prevent unwanted logout when user change page
+      const logoutDelay = 1000
+      setTimeout(() => {
+        user.socketsList.splice(index, 1)
+        // send admin users
+        this.adminGetUsers()
+      }, logoutDelay)
     }
     // send admin users
     this.adminGetUsers()
@@ -210,14 +211,12 @@ class SocketController {
       user.socketsList.forEach(socketId => {
         this.io.to(socketId).emit('message', user.messages);
       })
-      console.log('sendOldMessage:', user.messages)
     } catch (err) {
       console.log(err)
     }
   }
   sendNewMessage = (messageObject) => {
     try {
-      console.log('sendNewMessage:', messageObject)
       // add new message
       const { from, userId, message, createdAt = new Date() } = messageObject
       const user = this.findUserMapById(userId)
@@ -253,25 +252,19 @@ class SocketController {
         createdAt,
       })
 
-      console.log('sendNewMessage:', user.messages)
-
     } catch (error) {
       console.log(error)
     }
 
   }
   loginResponse = (socket, isLogin = false) => {
-    console.log('loginResponse')
     this.io.to(socket.id).emit('login', isLogin);
   }
   errorResponse = (socket, message) => {
-    console.log('sending error message:', message)
-    console.log('errorResponse socketId:', socket.id)
     this.io.to(socket.id).emit('error', message);
   }
   // ADMIN
   adminGetUsers = async () => {
-    console.log('adminGetUsers')
     try {
       const users = Object.fromEntries(this.usersMap.entries());
       this.adminSockets.forEach(socketId => {

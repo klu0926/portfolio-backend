@@ -167,19 +167,28 @@ p {
   justify-content: center;
 }
 
-.user-new-messages-count {
+.unread-messages-count {
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  background-color: var(--primary);
+  background-color: rgb(167, 167, 167);
   color: white;
   width: 30px;
   height: 30px;
   font-size: 0.9rem;
+  visibility: hidden;
 }
 
-.online .user-new-messages-count {
+.unread-messages-count.active {
+  visibility: visible;
+}
+
+.unread-messages-count.active.shake {
+  animation: shakeY 0.4s linear;
+}
+
+.online .unread-messages-count {
   background-color: var(--primary);
 }
 

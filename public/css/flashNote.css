@@ -1,5 +1,5 @@
 .flashNote {
-  position: absolute;
+  position: fixed;
   top: 30px;
   left: 50%;
   transform: translateY(0%) translateX(-50%);

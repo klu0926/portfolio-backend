@@ -145,7 +145,7 @@ class View {
           <span class='user-last-date'>${latestDate}</span>
         </div>
         <div class='user-top-right'>
-          <div  class='user-new-messages-count'></div>
+          <div class='unread-messages-count'></div>
         </div>
       `;
 
@@ -161,7 +161,7 @@ class View {
   }
   updateNewMessageCount(user, lastReadTimeObject) {
     const userDiv = document.querySelector(`#user-div-${user.id}`)
-    const newMessage = userDiv.querySelector('.user-new-messages-count')
+    const unreadMessageDiv = userDiv.querySelector('.unread-messages-count')
 
     // filter only user messages
     const userMessages = user.messages.filter(messageObject => messageObject.from === 'user')
@@ -176,7 +176,22 @@ class View {
         }
       })
     }
-    newMessage.innerText = unreadMessageCount
+
+    // toggle unreadMessage
+    if (unreadMessageCount > 0) {
+
+      // check if the unread messages is bigger than before
+      // if so trigger css animation shake
+      if (user.unreadMessagesCount !== undefined && Number(user.unreadMessagesCount) < Number(unreadMessageCount)) {
+        unreadMessageDiv.classList.add('shake')
+      }
+      unreadMessageDiv.classList.add('active')
+      unreadMessageDiv.innerText = unreadMessageCount
+    } else {
+      unreadMessageDiv.classList.remove('active')
+    }
+    // store to user unreadMessage
+    user.unreadMessagesCount = unreadMessageCount
   }
   renderMessagePanel(user) {
 
@@ -349,7 +364,6 @@ class Controller {
   }
   // Socket Listener functions ===================
   onAdminGetUsers = (newUsersObject) => {
-    console.log('newUsersObject:', newUsersObject)
     // check user login / logout
     if (this.usersObject && newUsersObject) {
       const newLoginUsers = []

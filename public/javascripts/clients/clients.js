@@ -1,4 +1,3 @@
-import e from 'cors';
 import sweetAlert from '../helper/sweetAlert.js'
 import dayjs from 'dayjs'
 
@@ -256,6 +255,7 @@ class Controller {
     this.usersObject = {}
     this.onlineUsersObject = null
     this.lastReadTime = null
+    this.currentChatUserId = null
   }
   init() {
     // socket server connect
@@ -377,6 +377,12 @@ class Controller {
     // get lastReadTime
     this.lastReadTime = this.getLastReadTime()
 
+    // update current chart room user read time
+    if (this.currentChatUserId !== null) {
+      this.setLastReadTime(this.currentChatUserId)
+      this.lastReadTime = this.getLastReadTime()
+    }
+
     // render latest Message
     this.view.renderUsersList(this.usersObject, this.lastReadTime, this.userDivOnClickHandler)
 
@@ -438,24 +444,27 @@ class Controller {
       // update new message count
       this.view.updateNewMessageCount(currentUser, this.getLastReadTime())
 
+      // set currentChatUserId
+      this.currentChatUserId = currentUser.id
+
     } catch (err) {
       console.error(err)
       sweetAlert.error('Fail to open', err.message)
     }
-
   }
   messagePanelWrapperClickHandler = (e) => {
     const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
-
     if (e.target === messagePanelWrapper) {
       messagePanelWrapper.classList.remove('active')
-      // render panel
-      //this.updateMessagePanel(user)
+      // remove current chat userId
+      this.currentChatUserId = null
     }
   }
-  messagePanelCloseHandler = (e) => {
+  messagePanelCloseHandler = () => {
     const messagePanelWrapper = document.querySelector('#message-panel-wrapper')
     messagePanelWrapper.classList.remove('active')
+    // remove current chat userId
+    this.currentChatUserId = null
   }
   messagePanelSendButtonHandler = (e) => {
     e.preventDefault()

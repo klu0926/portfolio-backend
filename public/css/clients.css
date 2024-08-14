@@ -11,6 +11,7 @@ p {
   display: none;
   flex-direction: column;
   margin-bottom: 10px;
+  margin: 0px 15px;
 }
 
 .clients-page-head.active {
@@ -39,12 +40,6 @@ p {
 .admin-logout {
   display: block;
   height: 30px;
-  background-color: var(--danger);
-  border: none;
-}
-
-.admin-logout:hover {
-  background-color: rgb(242, 62, 62);
 }
 
 .login-control {
@@ -82,7 +77,7 @@ p {
 .users-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
   visibility: hidden;
   margin-top: 15px;
 }
@@ -93,14 +88,16 @@ p {
 
 /* user div */
 .user-div {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
+  margin: 0px 10px;
   border-radius: 5px;
   background-color: rgb(228, 228, 228);
   border: 1px solid rgb(215, 215, 215);
-  box-shadow: 0px 2px 7px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
   color: grey;
   cursor: pointer;
   transition: transform 0.1s ease-in-out;
@@ -113,6 +110,7 @@ p {
 .user-div.online {
   background-color: white;
   color: black;
+  box-shadow: 0px 3px 6px 1px rgba(0, 0, 0, 0.1);
 }
 
 /* user div top left */
@@ -122,7 +120,7 @@ p {
   flex-direction: column;
   justify-content: start;
   gap: 4px;
-  width: calc(90%);
+  width: calc(80%);
 }
 
 .user-info {
@@ -142,10 +140,6 @@ p {
   font-weight: bold;
 }
 
-.user-email {
-  font-weight: bold;
-}
-
 .user-lastMessage {
   display: inline-block;
   overflow: hidden;
@@ -159,15 +153,10 @@ p {
   margin-top: 5px;
 }
 
-/* user div top right */
-.user-top-right {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .unread-messages-count {
+  position: absolute;
+  top: -10px;
+  right: -10px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -176,7 +165,7 @@ p {
   color: white;
   width: 30px;
   height: 30px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   visibility: hidden;
 }
 
@@ -190,6 +179,42 @@ p {
 
 .online .unread-messages-count {
   background-color: var(--primary);
+}
+
+/* user control */
+.user-control {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: space-between;
+  gap: 10px;
+}
+
+.user-control-btn {
+  width: 50px;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: gray;
+  color: white;
+  font-size: 0.8rem;
+  transition: all 0.2s linear;
+}
+
+.user-control-btn.delete {
+  background-color: rgb(232, 65, 65);
+}
+.user-control-btn.delete:hover {
+  background-color: rgb(253, 114, 114);
+}
+
+.user-control-btn.edit {
+  background-color: rgb(65, 150, 235);
+  transform: scale(0.99);
+}
+.user-control-btn.edit:hover {
+  background-color: rgb(129, 189, 250);
+  transform: scale(0.99);
 }
 
 /* message-panel */

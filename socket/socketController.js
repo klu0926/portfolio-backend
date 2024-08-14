@@ -119,6 +119,11 @@ class SocketController {
       // if user in usersMap
       let user = this.usersMap.get(email)
 
+      // check if name is also correct
+      if (user && user.name !== name) {
+        throw new Error('Wrong name or email')
+      }
+
       // user doesn't exist, create a user
       if (!user) {
         await this.userApi.createUser({
@@ -127,7 +132,7 @@ class SocketController {
           messages: []
         })
         // fetch new users from server and update usersMap
-        await this.getUsers()
+        await this.getUsersToMap()
         user = this.usersMap.get(email)
         user.socketsList = [socket.id]
       } else {
@@ -255,7 +260,6 @@ class SocketController {
     } catch (error) {
       console.log(error)
     }
-
   }
   loginResponse = (socket, isLogin = false) => {
     this.io.to(socket.id).emit('login', isLogin);
@@ -277,7 +281,7 @@ class SocketController {
     }
   }
   // get users from database, and store to local usersMap
-  getUsers = async () => {
+  getUsersToMap = async () => {
     try {
       // Fetch new user data from the server
       const responses = await this.userApi.getUsers();
@@ -308,6 +312,38 @@ class SocketController {
       console.error('Failed to get users:', err);
     }
   };
+  adminDeleteUser = async (adminSocket, userId) => {
+    try {
+      // check if socket is admin
+      const isAdmin = this.adminSockets.find(socket => socket === adminSocket.id)
+      if (!isAdmin) {
+        throw new Error('you are not an admin socket')
+      } else {
+        // delete user
+        const response = await this.userApi.deleteUser(userId)
+        if (!response.ok) {
+          throw new Error(response.error)
+        }
+
+        // update local user map
+        await this.getUsersToMap()
+
+        // successful delete user
+        this.io.to(adminSocket.id).emit('adminDeleteUser', {
+          ok: true,
+          message: `user ${userId} successfully deleted`
+        })
+      }
+    } catch (err) {
+      console.error(`Fail to delete user: ${err.message}`)
+      this.io.to(adminSocket.id).emit('adminDeleteUser', {
+        ok: false,
+        err,
+        message: err.message
+      });
+    }
+
+  }
   // export init to app.js
   async init(httpServer, port) {
     // create server
@@ -318,7 +354,7 @@ class SocketController {
     });
 
     // get users
-    await this.getUsers();  // Ensure this is awaited
+    await this.getUsersToMap();  // Ensure this is awaited
 
     // on connect
     this.io.on('connection', (socket) => {
@@ -351,6 +387,11 @@ class SocketController {
       socket.on('adminGetUsers', () => {
         this.adminGetUsers();
       });
+
+      // admin delete user
+      socket.on('adminDeleteUser', (userId) => {
+        this.adminDeleteUser(socket, userId)
+      })
 
       // got message
       socket.on('message', async (messageObject) => {

@@ -49,9 +49,9 @@ const userApi = {
       return apiResponse(false, null, error.message)
     }
   },
-  deleteUser: async (email) => {
+  deleteUser: async (userId) => {
     try {
-      const deletedRow = await User.destroy({ where: { email } });
+      const deletedRow = await User.destroy({ where: { id: userId } });
 
       if (deletedRow === 0) {
         throw new Error(`Can not find email: ${email} to delete`)

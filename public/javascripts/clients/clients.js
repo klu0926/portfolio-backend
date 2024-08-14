@@ -24,6 +24,9 @@ class Model {
   getAllUsers() {
     this.socket.emit('adminGetUsers')
   }
+  deleteUser(userId) {
+    return this.socket.emit('adminDeleteUser', userId)
+  }
 }
 
 // View
@@ -128,27 +131,28 @@ class View {
           onlineStatus = 'online';
         }
 
+
         // Set innerHTML for userDiv
         userDiv.innerHTML = `
         <div class='user-top-left'>
           <div class='user-info'>
             <div class='user-info-div ${onlineStatus}'>
-              ${onlineStatusIcon}
               <span class='user-name'>${user.name}</span>
             </div>
-            <div class='user-info-div'>
-              <i class="fa-regular fa-envelope"></i>
-              <span class='user-email'>${user.email}</span>
-            </div>
           </div>  
-            <p class='user-lastMessage'>${latestMessage}</p>
+            <div class='user-lastMessage'>${latestMessage}</div>
           <span class='user-last-date'>${latestDate}</span>
         </div>
-        <div class='user-top-right'>
-          <div class='unread-messages-count'></div>
+        <div class='user-control'>
+          <button class='user-control-btn delete' data-user-id=${user.id}>
+            <i class="fa-solid fa-user-xmark"></i>
+          </button>
+          <button class='user-control-btn edit' data-user-id=${user.id}>
+            <i class="fa-regular fa-pen-to-square"></i>
+          </button>
         </div>
+        <div class='unread-messages-count'></div>
       `;
-
         usersList.appendChild(userDiv);
 
         // update new messages count
@@ -337,6 +341,17 @@ class Controller {
 
     // get all users (after login)
     socket.on('adminGetUsers', this.onAdminGetUsers)
+
+    // deleteUser
+    socket.on('adminDeleteUser', async (data) => {
+      if (!data.ok) {
+        sweetAlert.error('Fail', data.error.message)
+      } else {
+        await sweetAlert.success('User Deleted', data.message)
+        // update users
+        this.model.getAllUsers()
+      }
+    })
   }
   setLastReadTime(userId) {
     try {
@@ -481,6 +496,23 @@ class Controller {
   }
   userDivOnClickHandler = (e) => {
     try {
+      let target = e.target
+
+      // Click on controller btn
+      if (target.tagName === "I") {
+        target = target.parentElement
+      }
+      if (target.tagName === "BUTTON") {
+        if (target.classList.contains('delete')) {
+          this.deleteBtnHandler(target)
+        }
+        if (target.classList.contains('edit')) {
+          this.editBtnHandler(target)
+        }
+        return
+      }
+
+      // Click on UserDiv, show messages 
       // find user in local
       const email = e.currentTarget.dataset.userEmail
       const currentUser = this.usersObject[email]
@@ -539,7 +571,13 @@ class Controller {
       userId,
       message,
     })
-
+  }
+  deleteBtnHandler = async (target) => {
+    const userId = target.dataset.userId
+    this.model.deleteUser(userId)
+  }
+  editBtnHandler = async (target) => {
+    const userId = target.dataset.userId
   }
 }
 

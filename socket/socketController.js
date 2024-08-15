@@ -2,7 +2,6 @@ const { Server } = require('socket.io');
 const userApi = require('../controller/api/userApi')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto');
-const { create } = require('domain');
 
 
 // usersMap 
@@ -41,6 +40,7 @@ class SocketController {
     return true
   }
   onAdminLogin = (socket, adminData) => {
+    console.log('onAdminLogin:', adminData)
     try {
       const { sessionId, name, password } = adminData
 
@@ -85,7 +85,7 @@ class SocketController {
       })
     } catch (err) {
       console.log(err)
-      this.errorResponse(socket, err.message)
+      this.errorResponse(socket, err)
     }
   }
   onLogin = async (socket, userData) => {

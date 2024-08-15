@@ -40,7 +40,6 @@ class SocketController {
     return true
   }
   onAdminLogin = (socket, adminData) => {
-    console.log('onAdminLogin:', adminData)
     try {
       const { sessionId, name, password } = adminData
 
@@ -362,7 +361,13 @@ class SocketController {
     // create server
     this.io = new Server(httpServer, {
       cors: {
-        origin: port, // Requests are allowed
+        origin: [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://www.lukuoyu.com',
+          'https://klu-portfolio-server-5858060573f4.herokuapp.com'
+        ],
+        methods: ['GET', 'POST']
       }
     });
 

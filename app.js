@@ -35,12 +35,14 @@ const corsOptions = {
 
 // Middleware to redirect HTTP to HTTPS
 const redirectToHTTPS = (req, res, next) => {
+  console.log('req.secure:', req.secure)
   if (req.secure) {
-    // Request is already HTTPS
-    return next();
+    next()
+    return
   }
-  // Redirect to HTTPS for all non-HTTPS requests
-  res.redirect('https://' + req.headers.host + req.url);
+
+  console.log('https://', req.headers.host + req.url)
+  // res.redirect('https://' + req.headers.host + req.url);
 };
 // Apply the middleware conditionally based on environment
 if (process.env.NODE_ENV === 'production') {

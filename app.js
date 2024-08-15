@@ -33,21 +33,6 @@ const corsOptions = {
   methods: 'GET,POST,PUT,DELETE',
 };
 
-// Middleware to redirect HTTP to HTTPS
-const redirectToHTTPS = (req, res, next) => {
-  console.log('req.secure:', req.secure)
-  if (req.secure) {
-    next()
-    return
-  }
-
-  console.log('https://', req.headers.host + req.url)
-  // res.redirect('https://' + req.headers.host + req.url);
-};
-// Apply the middleware conditionally based on environment
-if (process.env.NODE_ENV === 'production') {
-  app.use(redirectToHTTPS);
-}
 
 // check rawHeader (block postman)
 app.use((req, res, next) => {

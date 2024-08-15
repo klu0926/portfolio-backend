@@ -15,10 +15,16 @@ module.exports = {
       },
       userId: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        onDelete: 'CASCADE',
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
       },
       message: {
         type: Sequelize.TEXT
+
       },
       createdAt: {
         allowNull: false,

@@ -24,9 +24,16 @@ const loginController = {
     }
   },
   getLogout: async (req, res) => {
-    await req.session.destroy()
-    res.redirect('/login');
+    req.session.destroy(err => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ error: 'Failed to destroy session' });
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/login');
+    });
   }
+
 }
 
 module.exports = loginController

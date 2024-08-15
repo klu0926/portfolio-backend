@@ -144,10 +144,10 @@ class View {
           <span class='user-last-date'>${latestDate}</span>
         </div>
         <div class='user-control'>
-          <button class='user-control-btn delete' data-user-id=${user.id}>
+          <button class='user-control-btn delete' data-user-id=${user.id} data-user-email=${user.email}>
             <i class="fa-solid fa-user-xmark"></i>
           </button>
-          <button class='user-control-btn edit' data-user-id=${user.id}>
+          <button class='user-control-btn edit' data-user-id=${user.id} data-user-email=${user.email}>
             <i class="fa-regular fa-pen-to-square"></i>
           </button>
         </div>
@@ -574,7 +574,11 @@ class Controller {
   }
   deleteBtnHandler = async (target) => {
     const userId = target.dataset.userId
-    this.model.deleteUser(userId)
+    const userEmail = target.dataset.userEmail
+    const result = await sweetAlert.confirm('Delete User', `You want to delete user ${userEmail}`)
+    if (result.isConfirmed) {
+      this.model.deleteUser(userId)
+    }
   }
   editBtnHandler = async (target) => {
     const userId = target.dataset.userId

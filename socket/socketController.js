@@ -29,7 +29,7 @@ class SocketController {
     if (this.usersMap.size === 0) return null
     for (let [email, user] of this.usersMap) {
       if (Number(user.id) === Number(id)) {
-        return user;
+        return { user, email };
       }
     }
     return null;
@@ -224,7 +224,7 @@ class SocketController {
     try {
       // add new message
       const { from, userId, message, createdAt = new Date() } = messageObject
-      const user = this.findUserMapById(userId)
+      const { email, user } = this.findUserMapById(userId)
       if (!user) {
         throw new Error(`User does not exist: ${userId}`)
       }
@@ -319,11 +319,24 @@ class SocketController {
       if (!isAdmin) {
         throw new Error('you are not an admin socket')
       } else {
-        // delete user
+        // find user
+        const { email, user } = this.findUserMapById(userId)
+        console.log('trying to delete user:', user.email)
+
+        // delete user in database
         const response = await this.userApi.deleteUser(userId)
         if (!response.ok) {
           throw new Error(response.error)
         }
+
+        // emit userDeleted to client 
+        user.socketsList.forEach(socketId => {
+          console.log('sending adminDeleteUser to client:', socketId)
+          this.io.to(socketId).emit('adminDeleteUser')
+        })
+
+        // delete user in map
+        this.usersMap.delete(email)
 
         // update local user map
         await this.getUsersToMap()

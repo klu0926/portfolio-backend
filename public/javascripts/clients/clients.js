@@ -316,7 +316,7 @@ class Controller {
     const socket = this.model.socket
     // error
     socket.on('error', (message) => {
-      console.error('error:', message)
+      console.error('on error:', message)
       this.view.renderMessage(message)
     })
 

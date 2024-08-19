@@ -82,9 +82,9 @@ class SocketController {
         login: true,
         adminSessionId: this.adminSessionId
       })
-    } catch (err) {
-      console.log(err)
-      this.errorResponse(socket, err)
+    } catch (error) {
+      console.log('onAdminLogin:', error)
+      this.errorResponse(socket, error.message)
     }
   }
   onLogin = async (socket, userData) => {
@@ -264,6 +264,7 @@ class SocketController {
     this.io.to(socket.id).emit('login', isLogin);
   }
   errorResponse = (socket, message) => {
+    console.log('errorResponse: ', message)
     this.io.to(socket.id).emit('error', message);
   }
   // ADMIN
@@ -276,7 +277,7 @@ class SocketController {
 
     } catch (err) {
       console.log(err)
-      this.errorResponse(socket, `Fail to get all users:`, err.message)
+      this.errorResponse(socket, err.message)
     }
   }
   // get users from database, and store to local usersMap

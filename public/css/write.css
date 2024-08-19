@@ -340,14 +340,14 @@
 
 /* editor text size (base on google) */
 
-.ql-editor .ql-size-huge {
-  font-size: 3rem !important;
+.ql-editor .ql-size-large {
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }
 
-.ql-editor .ql-size-large {
-  font-size: 1.65rem !important;
+.ql-editor .ql-size-huge {
+  font-size: 35px;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }
@@ -365,15 +365,15 @@
 }
 
 .ql-snow .ql-editor p {
-  font-size: 1.05rem !important;
+  font-size: 1rem !important;
 }
 
 .ql-snow .ql-editor ol {
-  font-size: 1.05rem !important;
+  font-size: 1rem !important;
 }
 
 .ql-snow .ql-editor ul {
-  font-size: 1.05rem !important;
+  font-size: 1rem !important;
 }
 
 .ql-snow .ql-editor li span {
@@ -386,15 +386,15 @@
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='normal']::before {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
-  font-size: 25px;
+  font-size: 20px;
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
-  font-size: 40px;
+  font-size: 35px;
 }
 
 /* sweet image select template */

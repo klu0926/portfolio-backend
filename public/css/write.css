@@ -341,13 +341,13 @@
 /* editor text size (base on google) */
 
 .ql-editor .ql-size-large {
-  font-size: 20px;
+  font-size: 20px !important;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }
 
 .ql-editor .ql-size-huge {
-  font-size: 35px;
+  font-size: 35px !important;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }

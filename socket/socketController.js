@@ -285,7 +285,7 @@ class SocketController {
     try {
       // Fetch new user data from the server
       const responses = await this.userApi.getUsers();
-      const users = responses.data;
+      const users = responses.data || [];
 
       // Create a new map to hold the updated user data
       const newUsersMap = new Map();

@@ -18,8 +18,12 @@ const socketController = require('./socket/socketController')
 const whiteList = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://127.0.0.1:5500',
   'https://www.lukuoyu.com',
-  'https://klu-portfolio-server-5858060573f4.herokuapp.com'
+  'https://klu-portfolio-server-5858060573f4.herokuapp.com',
+  // Humber Portfolio Assignment
+  'https://klu0926.github.io',
+  'https://klu0926.github.io/my-portfolio'
 ];
 const corsOptions = {
   origin: function (origin, callback) {
